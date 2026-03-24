@@ -1,0 +1,35 @@
+.costureiras-page .page-desc {
+  color: var(--dalia-text-muted);
+  margin: 0 0 1rem 0;
+}
+
+.lista-costureiras .tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.lista-costureiras .tabela th,
+.lista-costureiras .tabela td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--dalia-border);
+  color: var(--dalia-text);
+}
+
+.lista-costureiras .tabela th {
+  background: var(--dalia-bg-sidebar);
+  font-weight: 600;
+}
+
+.input-prioridade {
+  width: 4rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 4px;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+}

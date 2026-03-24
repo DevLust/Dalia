@@ -1,0 +1,77 @@
+.cliente-form-card {
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 520px;
+  box-shadow: 0 4px 12px var(--dalia-shadow);
+}
+
+.cliente-form-card h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  color: var(--dalia-text);
+}
+
+.cliente-form-card .form-row {
+  margin-bottom: 1rem;
+}
+
+.cliente-form-card .form-row label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+  color: var(--dalia-text);
+}
+
+.cliente-form-card input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 6px;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.cliente-form-card input:focus {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+  border-color: var(--dalia-rose);
+}
+
+.medidas-fieldset {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 8px;
+}
+
+.medidas-fieldset legend {
+  padding: 0 0.5rem;
+  color: var(--dalia-text);
+}
+
+.form-row.inline {
+  display: inline-block;
+  width: calc(50% - 0.5rem);
+  margin-right: 0.5rem;
+  vertical-align: top;
+}
+
+.form-erro {
+  color: var(--dalia-rose);
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.cliente-form-card .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.cliente-form-card .form-actions .btn-primary {
+  flex: 1;
+}

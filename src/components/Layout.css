@@ -1,0 +1,197 @@
+/* Layout – cores conforme documento (Dália Ateliê de Noivas) */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--dalia-bg);
+  color: var(--dalia-text);
+}
+
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--dalia-bg-sidebar);
+  border-right: 1px solid var(--dalia-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.sidebar a,
+.sidebar .sair {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  color: var(--dalia-text);
+  text-decoration: none;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.sidebar a:hover,
+.sidebar .sair:hover {
+  background: var(--dalia-rose-light);
+}
+
+.sidebar a:focus-visible,
+.sidebar .sair:focus-visible {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+}
+
+.sidebar a.active {
+  background: var(--dalia-rose-light);
+  border-left-color: var(--dalia-rose);
+  font-weight: 600;
+  color: var(--dalia-rose);
+}
+
+.sidebar .icon {
+  font-size: 1.25rem;
+}
+
+.sidebar .sair {
+  margin-top: auto;
+  color: var(--dalia-out);
+}
+
+.main-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  height: 56px;
+  background: var(--dalia-bg-card);
+  border-bottom: 1px solid var(--dalia-border);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  gap: 1rem;
+  box-shadow: 0 1px 0 var(--dalia-shadow);
+}
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--dalia-text);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.menu-toggle:focus-visible {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+}
+
+.logo-link {
+  color: var(--dalia-text);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.logo-link:hover {
+  color: var(--dalia-rose);
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.notif-wrap {
+  position: relative;
+}
+
+.notif-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 4px;
+  color: var(--dalia-text);
+}
+
+.notif-btn:focus-visible {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  min-width: 280px;
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px var(--dalia-shadow-strong);
+}
+
+.notif-title {
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--dalia-text);
+}
+
+.notif-empty {
+  color: var(--dalia-text-light);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.user-id {
+  font-size: 0.9rem;
+  color: var(--dalia-text-muted);
+}
+
+.container-principal {
+  flex: 1;
+  padding: 1.5rem;
+  overflow: auto;
+  background: var(--dalia-bg);
+}
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.2s;
+    box-shadow: 2px 0 8px var(--dalia-shadow);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}

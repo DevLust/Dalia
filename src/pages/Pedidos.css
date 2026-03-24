@@ -1,0 +1,48 @@
+.pedidos-page .toolbar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.pedidos-page .filtro-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 6px;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+}
+
+.pedidos-page select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 6px;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  min-width: 160px;
+}
+
+.pedidos-page .tabela .badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.pedidos-page .tabela .btn-sm {
+  margin-right: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--dalia-border-strong);
+  color: var(--dalia-text);
+}
+
+.pedidos-page .tabela .btn-sm.danger {
+  background: var(--dalia-rose);
+  color: #fff;
+}

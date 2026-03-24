@@ -1,0 +1,21 @@
+@import './theme.css';
+
+:root {
+  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  color: var(--dalia-text);
+  background: var(--dalia-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Suporte a zoom até 200% (documentação - item 8) */
+html {
+  font-size: 100%;
+}

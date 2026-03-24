@@ -1,0 +1,160 @@
+.pedido-form-card {
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 560px;
+  box-shadow: 0 4px 12px var(--dalia-shadow);
+}
+
+.pedido-form-card h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  color: var(--dalia-text);
+}
+
+.pedido-form-card .form-row {
+  margin-bottom: 1rem;
+}
+
+.pedido-form-card label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+  color: var(--dalia-text);
+}
+
+.pedido-form-card input,
+.pedido-form-card select,
+.pedido-form-card textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 6px;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.pedido-form-card input:focus,
+.pedido-form-card select:focus,
+.pedido-form-card textarea:focus {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+  border-color: var(--dalia-rose);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: auto;
+}
+
+.itens-fieldset {
+  margin: 1.25rem 0;
+  padding: 1rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: 8px;
+}
+
+.busca-produto input {
+  margin-bottom: 0.75rem;
+}
+
+.lista-itens {
+  list-style: none;
+  margin: 0 0 0.75rem 0;
+  padding: 0;
+}
+
+.lista-itens li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--dalia-border);
+}
+
+.lista-itens li span:first-child {
+  flex: 1;
+}
+
+.qtd-control {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.qtd-control button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--dalia-border);
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-remove {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  background: var(--dalia-rose);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-produtos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.btn-add-prod {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  background: var(--dalia-border-strong);
+  color: var(--dalia-text);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-add-prod:hover {
+  background: var(--dalia-rose);
+  color: #fff;
+}
+
+.valor-total {
+  font-weight: 700;
+  color: var(--dalia-rose);
+  margin: 0;
+}
+
+.pedido-form-card .form-actions .btn-primary {
+  background: var(--dalia-rose);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pedido-form-card .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.pedido-form-card .btn-primary {
+  flex: 1;
+}

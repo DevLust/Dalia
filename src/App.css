@@ -1,0 +1,59 @@
+/* Reset e base - alto contraste (WCAG), conforme documentação */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Zoom até 200% sem quebrar layout */
+html {
+  font-size: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+}
+
+/* Botões primários (tema Dália) */
+.btn-primary {
+  background: var(--dalia-rose);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: var(--dalia-rose-hover);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--dalia-rose);
+  outline-offset: 2px;
+}

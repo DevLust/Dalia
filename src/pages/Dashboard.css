@@ -1,0 +1,98 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--dalia-text);
+}
+
+.page-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  color: var(--dalia-text);
+}
+
+.resumos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 4px var(--dalia-shadow);
+}
+
+.card h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dalia-text-muted);
+}
+
+.card .valor {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dalia-rose);
+}
+
+.compras-resumo {
+  margin-bottom: 1.5rem;
+}
+
+.compras-resumo p {
+  margin: 0.25rem 0;
+  color: var(--dalia-text);
+}
+
+.grafico-placeholder {
+  margin-bottom: 1.5rem;
+}
+
+.mini-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  height: 120px;
+  margin-top: 0.75rem;
+}
+
+.mini-chart .barra {
+  flex: 1;
+  min-width: 60px;
+  background: var(--dalia-rose);
+  border-radius: 4px 4px 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.25rem;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.pedidos-recentes ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pedidos-recentes li {
+  margin: 0.5rem 0;
+}
+
+.pedidos-recentes a {
+  color: var(--dalia-rose);
+  text-decoration: none;
+}
+
+.pedidos-recentes a:hover {
+  text-decoration: underline;
+}
+
+.vazio {
+  color: var(--dalia-text-light);
+  margin: 0;
+}
