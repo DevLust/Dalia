@@ -308,6 +308,24 @@
   background: var(--dalia-bg);
 }
 
+.db-warning {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--dalia-radius);
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.db-warning code {
+  font-size: 0.8em;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
 @media (max-width: 900px) {
   .user-name {
     display: none;

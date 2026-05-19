@@ -35,7 +35,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { notificacoes, marcarNotificacao, error: dataError, pedidos } = useData();
+  const { notificacoes, marcarNotificacao, error: dataError, pedidos, usingSupabase } =
+    useData();
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const naoLidas = notificacoes.filter((n) => !n.lida);
@@ -183,6 +184,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </header>
 
         <main className="container-principal" id="main-content">
+          {!usingSupabase && (
+            <div className="db-warning" role="alert">
+              <strong>Modo offline:</strong> os dados estão sendo salvos apenas neste navegador, não no
+              Supabase. Configure <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code>{' '}
+              na Vercel e faça um novo deploy.
+            </div>
+          )}
           {children}
         </main>
       </div>

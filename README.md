@@ -39,7 +39,22 @@ Sem `.env` configurado, o app usa `localStorage` como fallback local.
 npm run build
 ```
 
-Saída em `dist/`. Na Vercel, configure as variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` no painel do projeto (não no código).
+Saída em `dist/`.
+
+### Vercel + Supabase (obrigatório para salvar no banco)
+
+No [painel da Vercel](https://vercel.com) → seu projeto → **Settings** → **Environment Variables**, adicione:
+
+| Nome | Valor |
+|------|--------|
+| `VITE_SUPABASE_URL` | URL do projeto (Supabase → Settings → API) |
+| `VITE_SUPABASE_ANON_KEY` | Chave **anon** / **public** (mesma tela) |
+
+Marque **Production**, **Preview** e **Development**.
+
+Depois vá em **Deployments** → **⋯** no último deploy → **Redeploy** (obrigatório: o Vite embute essas variáveis na hora do build).
+
+Se aparecer o aviso laranja *“Modo offline”* no site, as variáveis ainda não estão no deploy atual.
 
 ## Segurança
 
