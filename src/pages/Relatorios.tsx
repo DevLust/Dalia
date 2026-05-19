@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react';
-import { store } from '../store';
+import { useData } from '../contexts/DataContext';
+import { calcularFaturamentoPedidos } from '../lib/produtoStatus';
+import DateInput from '../components/DateInput';
+import { formatDate } from '../lib/dates';
 import './Relatorios.css';
 
 type Agrupamento = 'cliente' | 'pedido' | 'produto' | 'vendas';
 
 export default function Relatorios() {
+  const { clientes, pedidos, produtos } = useData();
   const [agrupamento, setAgrupamento] = useState<Agrupamento>('pedido');
   const [filtroDataInicio, setFiltroDataInicio] = useState('');
   const [filtroDataFim, setFiltroDataFim] = useState('');
-
-  const { clientes, pedidos, produtos } = store;
 
   const dadosFiltrados = useMemo(() => {
     let lista = [...pedidos];
@@ -36,7 +38,7 @@ export default function Relatorios() {
       return Array.from(porCliente.entries()).map(([id, v]) => ({ id, ...v }));
     }
     if (agrupamento === 'vendas') {
-      const total = dadosFiltrados.reduce((s, p) => s + (p.valorPago ?? p.valorTotal ?? 0), 0);
+      const total = calcularFaturamentoPedidos(dadosFiltrados);
       const pagos = dadosFiltrados.filter((p) => p.pago).length;
       return [{ total, quantidade: dadosFiltrados.length, pagos }];
     }
@@ -67,10 +69,10 @@ export default function Relatorios() {
 
   return (
     <div className="relatorios-page">
-      <h1 className="page-title">Relatórios</h1>
-      <p className="page-desc">
-        Relatório por agrupamento, com filtros para personalizar os dados.
-      </p>
+      <header className="page-header">
+        <h1 className="page-title">Relatórios</h1>
+        <p className="page-desc">Relatório por agrupamento, com filtros para personalizar os dados.</p>
+      </header>
 
       <div className="filtros">
         <div className="form-row">
@@ -88,25 +90,19 @@ export default function Relatorios() {
         </div>
         <div className="form-row">
           <label htmlFor="rel-inicio">Data início</label>
-          <input
+          <DateInput
             id="rel-inicio"
-            type="date"
             value={filtroDataInicio}
-            onChange={(e) => setFiltroDataInicio(e.target.value)}
+            onChange={setFiltroDataInicio}
           />
         </div>
         <div className="form-row">
           <label htmlFor="rel-fim">Data fim</label>
-          <input
-            id="rel-fim"
-            type="date"
-            value={filtroDataFim}
-            onChange={(e) => setFiltroDataFim(e.target.value)}
-          />
+          <DateInput id="rel-fim" value={filtroDataFim} onChange={setFiltroDataFim} />
         </div>
       </div>
 
-      <section className="relatorio-resultado" aria-label="Resultado do relatório">
+      <section className="relatorio-resultado tabela-wrap" aria-label="Resultado do relatório">
         <table className="tabela">
           <thead>
             <tr>
@@ -170,11 +166,19 @@ export default function Relatorios() {
                 </tr>
               ))
             ) : (
-              (relatorio as { id: string; cliente: string; data: string; valor: number; status: string }[]).map((r) => (
+              (
+                relatorio as {
+                  id: string;
+                  cliente: string;
+                  data: string;
+                  valor: number;
+                  status: string;
+                }[]
+              ).map((r) => (
                 <tr key={r.id}>
                   <td>#{r.id.slice(0, 8)}</td>
                   <td>{r.cliente}</td>
-                  <td>{new Date(r.data).toLocaleDateString('pt-BR')}</td>
+                  <td>{formatDate(r.data)}</td>
                   <td>R$ {r.valor.toFixed(2).replace('.', ',')}</td>
                   <td>{r.status}</td>
                 </tr>

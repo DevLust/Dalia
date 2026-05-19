@@ -1,0 +1,229 @@
+.cliente-form-card,
+.produto-form-card,
+.pedido-form-card {
+  background: var(--dalia-bg-card);
+  border: none;
+  border-radius: var(--dalia-radius-lg);
+  padding: 1.75rem;
+  box-shadow: var(--dalia-shadow-strong);
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.cliente-form-card {
+  max-width: 520px;
+}
+
+.produto-form-card {
+  max-width: 560px;
+}
+
+.pedido-form-card {
+  max-width: 720px;
+}
+
+.cliente-form-card h2,
+.produto-form-card h2,
+.pedido-form-card h2 {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--dalia-text);
+}
+
+.cliente-form-card .form-row,
+.produto-form-card .form-row,
+.pedido-form-card .form-row {
+  margin-bottom: 1rem;
+}
+
+.cliente-form-card label,
+.produto-form-card label,
+.pedido-form-card label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--dalia-text-muted);
+}
+
+.cliente-form-card input,
+.produto-form-card input,
+.produto-form-card select,
+.pedido-form-card input,
+.pedido-form-card select,
+.pedido-form-card textarea {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--dalia-radius);
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.cliente-form-card input:focus,
+.produto-form-card input:focus,
+.produto-form-card select:focus,
+.pedido-form-card input:focus,
+.pedido-form-card select:focus,
+.pedido-form-card textarea:focus {
+  outline: none;
+  border-color: var(--dalia-primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--dalia-primary-light);
+}
+
+.cliente-form-card .form-actions,
+.produto-form-card .form-actions,
+.pedido-form-card .form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--dalia-border);
+}
+
+.cliente-form-card .form-actions .btn-primary,
+.produto-form-card .form-actions .btn-primary,
+.pedido-form-card .form-actions .btn-primary {
+  min-width: 120px;
+}
+
+.medidas-fieldset,
+.itens-fieldset {
+  margin: 1.25rem 0;
+  padding: 1.15rem;
+  border: 1px solid var(--dalia-border);
+  border-radius: var(--dalia-radius);
+  background: #fafbfd;
+}
+
+.medidas-fieldset legend {
+  padding: 0 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--dalia-text);
+}
+
+.form-row.inline {
+  display: inline-block;
+  width: calc(50% - 0.5rem);
+  margin-right: 0.5rem;
+  vertical-align: top;
+}
+
+.preview-img {
+  margin-top: 0.5rem;
+}
+
+.preview-img img {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: var(--dalia-radius);
+  border: 1px solid var(--dalia-border);
+}
+
+.produto-form-card .hint {
+  font-size: 0.8rem;
+  color: var(--dalia-text-muted);
+  margin: 0.35rem 0 0;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-row input[type='checkbox'] {
+  width: auto;
+  accent-color: var(--dalia-primary);
+}
+
+.checkbox-row label {
+  margin: 0;
+}
+
+.busca-produto input {
+  margin-bottom: 0.75rem;
+}
+
+.lista-itens {
+  list-style: none;
+  margin: 0 0 0.75rem 0;
+  padding: 0;
+}
+
+.lista-itens li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--dalia-border);
+}
+
+.lista-itens li span:first-child {
+  flex: 1;
+}
+
+.qtd-control {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.qtd-control button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--dalia-border);
+  background: #fff;
+  color: var(--dalia-text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-remove {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  background: var(--dalia-danger-bg);
+  color: var(--dalia-danger);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.add-produtos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.btn-add-prod {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-add-prod:hover {
+  background: var(--dalia-primary);
+  color: #fff;
+}
+
+.valor-total {
+  font-weight: 700;
+  color: var(--dalia-primary);
+  margin: 0;
+  font-size: 1rem;
+}

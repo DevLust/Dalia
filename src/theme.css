@@ -1,27 +1,31 @@
-/* Paleta Dália Ateliê de Noivas - conforme documento (alto contraste WCAG) */
 :root {
-  /* Fundos */
-  --dalia-bg: #faf7f5;
+  --dalia-bg: #f4f6fb;
   --dalia-bg-card: #ffffff;
-  --dalia-bg-sidebar: #f5f0ec;
-  --dalia-bg-input: #faf7f5;
-  /* Texto */
-  --dalia-text: #2d2d2d;
-  --dalia-text-muted: #5a5552;
-  --dalia-text-light: #7a7370;
-  /* Rosa noivas (acento principal) */
-  --dalia-rose: #a85c68;
-  --dalia-rose-hover: #934d58;
-  --dalia-rose-light: rgba(168, 92, 104, 0.15);
-  /* Dourado (acento secundário) */
-  --dalia-gold: #b8860b;
-  --dalia-gold-light: rgba(184, 134, 11, 0.12);
-  /* Bordas */
-  --dalia-border: #e8dfd8;
-  --dalia-border-strong: #d4c9c0;
-  /* Sair / perigo */
-  --dalia-out: #8b4350;
-  /* Sombras */
-  --dalia-shadow: rgba(45, 45, 45, 0.08);
-  --dalia-shadow-strong: rgba(45, 45, 45, 0.12);
+  --dalia-bg-sidebar: #ffffff;
+  --dalia-bg-input: #f0f2f8;
+  --dalia-text: #1e293b;
+  --dalia-text-muted: #64748b;
+  --dalia-text-light: #94a3b8;
+  --dalia-primary: #5b6cf8;
+  --dalia-primary-hover: #4a5be6;
+  --dalia-primary-light: rgba(91, 108, 248, 0.14);
+  --dalia-rose: #5b6cf8;
+  --dalia-rose-hover: #4a5be6;
+  --dalia-rose-light: rgba(91, 108, 248, 0.14);
+  --dalia-gold: #f59e0b;
+  --dalia-gold-light: rgba(245, 158, 11, 0.12);
+  --dalia-border: #e8ecf4;
+  --dalia-border-strong: #d1d9e6;
+  --dalia-out: #ef4444;
+  --dalia-success: #16a34a;
+  --dalia-success-bg: #dcfce7;
+  --dalia-warning: #d97706;
+  --dalia-warning-bg: #ffedd5;
+  --dalia-danger: #dc2626;
+  --dalia-danger-bg: #fee2e2;
+  --dalia-info-bg: #e0e7ff;
+  --dalia-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --dalia-shadow-strong: 0 8px 30px rgba(15, 23, 42, 0.1);
+  --dalia-radius: 12px;
+  --dalia-radius-lg: 16px;
 }

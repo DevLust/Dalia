@@ -20,7 +20,9 @@ function load<T>(key: string, defaultVal: T): T {
   try {
     const s = localStorage.getItem(key);
     if (s) return JSON.parse(s) as T;
-  } catch (_) {}
+  } catch {
+    void 0;
+  }
   return defaultVal;
 }
 
@@ -28,7 +30,6 @@ function save<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-// Usuários iniciais (admin, gerente, atendente)
 const defaultUsuarios: Usuario[] = [
   {
     id: '1',

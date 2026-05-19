@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { store, generateId } from '../store';
+import { generateId } from '../store';
+import { useData } from '../contexts/DataContext';
+import { validarCPF } from '../lib/validators';
 import type { Cliente, Medidas } from '../types';
-import './ClienteForm.css';
+import './forms.css';
 
 function formatCPF(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 11);
@@ -35,25 +37,26 @@ export default function ClienteForm({
   onSalvo: () => void;
   onCancelar: () => void;
 }) {
+  const { salvarCliente } = useData();
   const [nome, setNome] = useState(cliente?.nome ?? '');
   const [cpf, setCpf] = useState(cliente?.cpf ? formatCPF(cliente.cpf) : '');
-  const [identidade, setIdentidade] = useState(cliente?.identidade ?? '');
   const [endereco, setEndereco] = useState(cliente?.endereco ?? '');
   const [telefone, setTelefone] = useState(cliente?.telefone ? formatTel(cliente.telefone) : '');
   const [email, setEmail] = useState(cliente?.email ?? '');
   const [medidas, setMedidas] = useState<Medidas>(cliente?.medidas ?? {});
   const [erro, setErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
 
-  useEffect(() => {
-    if (cliente?.medidas) setMedidas({ ...cliente.medidas });
-  }, [cliente?.id]);
-
-  const handleSalvar = (e: FormEvent) => {
+  const handleSalvar = async (e: FormEvent) => {
     e.preventDefault();
     setErro('');
     const cpfLimpo = cpf.replace(/\D/g, '');
     if (cpfLimpo.length !== 11) {
       setErro('CPF deve ter 11 dígitos.');
+      return;
+    }
+    if (!validarCPF(cpfLimpo)) {
+      setErro('CPF inválido. Verifique os números digitados.');
       return;
     }
     if (!nome.trim()) {
@@ -73,7 +76,6 @@ export default function ClienteForm({
       id: cliente?.id ?? generateId(),
       nome: nome.trim(),
       cpf: cpfLimpo,
-      identidade: identidade.trim() || undefined,
       endereco: endereco.trim(),
       telefone: telefone.replace(/\D/g, ''),
       email: email.trim() || undefined,
@@ -81,12 +83,15 @@ export default function ClienteForm({
       createdAt: cliente?.createdAt ?? new Date().toISOString(),
     };
 
-    const lista = [...store.clientes];
-    const idx = lista.findIndex((c) => c.id === payload.id);
-    if (idx >= 0) lista[idx] = payload;
-    else lista.push(payload);
-    store.clientes = lista;
-    onSalvo();
+    setSalvando(true);
+    try {
+      await salvarCliente(payload);
+      onSalvo();
+    } catch {
+      setErro('Não foi possível salvar o cliente.');
+    } finally {
+      setSalvando(false);
+    }
   };
 
   const updateMedida = (key: keyof Medidas, value: string) => {
@@ -120,10 +125,6 @@ export default function ClienteForm({
             required
             aria-required="true"
           />
-        </div>
-        <div className="form-row">
-          <label htmlFor="cliente-identidade">Identidade</label>
-          <input id="cliente-identidade" value={identidade} onChange={(e) => setIdentidade(e.target.value)} />
         </div>
         <div className="form-row">
           <label htmlFor="cliente-endereco">Endereço *</label>
@@ -175,11 +176,11 @@ export default function ClienteForm({
         {erro && <p className="form-erro" role="alert">{erro}</p>}
 
         <div className="form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancelar}>
+          <button type="button" className="btn-secondary" onClick={onCancelar} disabled={salvando}>
             Cancelar
           </button>
-          <button type="submit" className="btn-primary">
-            Salvar
+          <button type="submit" className="btn-primary" disabled={salvando}>
+            {salvando ? 'Salvando…' : 'Salvar'}
           </button>
         </div>
       </form>

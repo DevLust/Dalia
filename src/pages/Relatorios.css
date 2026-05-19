@@ -1,13 +1,13 @@
-.relatorios-page .page-desc {
-  color: var(--dalia-text-muted);
-  margin: 0 0 1rem 0;
-}
-
 .relatorios-page .filtros {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: var(--dalia-radius-lg);
+  box-shadow: var(--dalia-shadow);
 }
 
 .relatorios-page .form-row {
@@ -16,38 +16,21 @@
 
 .relatorios-page .form-row label {
   display: block;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
   font-weight: 500;
-  color: var(--dalia-text);
+  font-size: 0.875rem;
+  color: var(--dalia-text-muted);
 }
 
 .relatorios-page .form-row input,
 .relatorios-page .form-row select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--dalia-border);
-  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--dalia-radius);
   background: var(--dalia-bg-input);
   color: var(--dalia-text);
 }
 
-.relatorio-resultado .tabela {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--dalia-bg-card);
-  border: 1px solid var(--dalia-border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.relatorio-resultado .tabela th,
-.relatorio-resultado .tabela td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid var(--dalia-border);
-  color: var(--dalia-text);
-}
-
-.relatorio-resultado .tabela th {
-  background: var(--dalia-bg-sidebar);
-  font-weight: 600;
+.relatorio-resultado .tabela-wrap {
+  margin-top: 0.5rem;
 }

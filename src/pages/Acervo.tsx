@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { store } from '../store';
-import type { Produto, StatusProduto } from '../types';
+import { useState } from 'react';
+import { useData } from '../contexts/DataContext';
+import { statusEfetivo } from '../lib/produtoStatus';
+import type { StatusProduto } from '../types';
 import ProdutoForm from '../components/ProdutoForm';
 import './Acervo.css';
 
@@ -11,33 +12,28 @@ const STATUS_LABEL: Record<StatusProduto, string> = {
   emprestado: 'Emprestado',
   danificado: 'Danificado',
   conserto: 'Em conserto',
+  fora_estoque: 'Fora de estoque',
 };
 
 export default function Acervo() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const { produtos, excluirProduto } = useData();
   const [filtro, setFiltro] = useState('');
   const [filtroStatus, setFiltroStatus] = useState<StatusProduto | ''>('');
   const [editarId, setEditarId] = useState<string | null>(null);
   const [novo, setNovo] = useState(false);
 
-  useEffect(() => {
-    setProdutos(store.produtos);
-  }, []);
-
   const filtrados = produtos.filter((p) => {
+    const efetivo = statusEfetivo(p);
     const matchText =
       p.tipo.toLowerCase().includes(filtro.toLowerCase()) ||
       p.descricao.toLowerCase().includes(filtro.toLowerCase());
-    const matchStatus = !filtroStatus || p.status === filtroStatus;
+    const matchStatus = !filtroStatus || efetivo === filtroStatus;
     return matchText && matchStatus;
   });
 
-  const refresh = () => setProdutos([...store.produtos]);
-
-  const handleExcluir = (id: string) => {
+  const handleExcluir = async (id: string) => {
     if (confirm('Excluir este produto do acervo?')) {
-      store.produtos = store.produtos.filter((p) => p.id !== id);
-      refresh();
+      await excluirProduto(id);
       if (editarId === id) setEditarId(null);
     }
   };
@@ -46,7 +42,10 @@ export default function Acervo() {
 
   return (
     <div className="acervo-page">
-      <h1 className="page-title">Acervo</h1>
+      <header className="page-header">
+        <h1 className="page-title">Acervo</h1>
+        <p className="page-desc">Catálogo de peças e estoque</p>
+      </header>
 
       <div className="toolbar">
         <input
@@ -69,7 +68,14 @@ export default function Acervo() {
             </option>
           ))}
         </select>
-        <button type="button" className="btn-primary" onClick={() => { setNovo(true); setEditarId(null); }}>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => {
+            setNovo(true);
+            setEditarId(null);
+          }}
+        >
           Novo produto
         </button>
       </div>
@@ -79,7 +85,6 @@ export default function Acervo() {
           <ProdutoForm
             produto={produtoEmEdicao ?? undefined}
             onSalvo={() => {
-              refresh();
               setNovo(false);
               setEditarId(null);
             }}
@@ -95,30 +100,41 @@ export default function Acervo() {
         {filtrados.length === 0 ? (
           <p className="vazio">Nenhum produto encontrado.</p>
         ) : (
-          filtrados.map((p) => (
-            <article key={p.id} className="produto-card">
-              <div className="produto-img">
-                {p.imagem ? (
-                  <img src={p.imagem} alt={p.descricao} />
-                ) : (
-                  <span className="sem-img">Sem imagem</span>
-                )}
-              </div>
-              <div className="produto-info">
-                <span className="produto-tipo">{p.tipo}</span>
-                <p className="produto-desc">{p.descricao}</p>
-                <span className={`badge status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
-                <div className="produto-actions">
-                  <button type="button" className="btn-sm" onClick={() => { setEditarId(p.id); setNovo(false); }}>
-                    Editar
-                  </button>
-                  <button type="button" className="btn-sm danger" onClick={() => handleExcluir(p.id)}>
-                    Excluir
-                  </button>
+          filtrados.map((p) => {
+            const efetivo = statusEfetivo(p);
+            return (
+              <article key={p.id} className="produto-card">
+                <div className="produto-img">
+                  {p.imagem ? (
+                    <img src={p.imagem} alt={p.descricao} />
+                  ) : (
+                    <span className="sem-img">Sem imagem</span>
+                  )}
                 </div>
-              </div>
-            </article>
-          ))
+                <div className="produto-info">
+                  <span className="produto-tipo">{p.tipo}</span>
+                  <p className="produto-desc">{p.descricao}</p>
+                  <span className="badge">Estoque: {p.quantidade}</span>
+                  <span className={`badge status-${efetivo}`}>{STATUS_LABEL[efetivo]}</span>
+                  <div className="produto-actions">
+                    <button
+                      type="button"
+                      className="btn-sm"
+                      onClick={() => {
+                        setEditarId(p.id);
+                        setNovo(false);
+                      }}
+                    >
+                      Editar
+                    </button>
+                    <button type="button" className="btn-sm danger" onClick={() => void handleExcluir(p.id)}>
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })
         )}
       </section>
     </div>

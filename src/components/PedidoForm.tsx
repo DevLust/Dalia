@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { store, generateId } from '../store';
+import { generateId } from '../store';
+import { todayIso } from '../lib/dates';
+import DateInput from './DateInput';
+import { useData } from '../contexts/DataContext';
+import { podeAlugar } from '../lib/produtoStatus';
 import type {
   Pedido,
   ItemPedido,
@@ -8,7 +12,7 @@ import type {
   TipoPedido,
   StatusPedido,
 } from '../types';
-import './PedidoForm.css';
+import './forms.css';
 
 const TIPOS_PAGAMENTO: { value: TipoPagamento; label: string }[] = [
   { value: 'vista', label: 'À vista' },
@@ -50,14 +54,13 @@ export default function PedidoForm({
   onSalvo: () => void;
   onCancelar: () => void;
 }) {
-  const clientes = store.clientes;
-  const produtos = store.produtos;
+  const { clientes, produtos, salvarPedido } = useData();
 
   const [clienteId, setClienteId] = useState(pedido?.clienteId ?? '');
   const [tipoPagamento, setTipoPagamento] = useState<TipoPagamento>(pedido?.tipoPagamento ?? 'vista');
   const [tipoPedido, setTipoPedido] = useState<TipoPedido>(pedido?.tipoPedido ?? 'integral');
   const [dataAgendamento, setDataAgendamento] = useState(
-    pedido?.dataAgendamento ? pedido.dataAgendamento.slice(0, 10) : new Date().toISOString().slice(0, 10)
+    pedido?.dataAgendamento ? pedido.dataAgendamento.slice(0, 10) : todayIso()
   );
   const [dataRetirada, setDataRetirada] = useState(
     pedido?.dataRetirada ? pedido.dataRetirada.slice(0, 10) : ''
@@ -65,23 +68,45 @@ export default function PedidoForm({
   const [dataEvento, setDataEvento] = useState(
     pedido?.dataEvento ? pedido.dataEvento.slice(0, 10) : ''
   );
+  const [dataDevolucao, setDataDevolucao] = useState(
+    pedido?.dataDevolucao ? pedido.dataDevolucao.slice(0, 10) : ''
+  );
   const [status, setStatus] = useState<StatusPedido>(pedido?.status ?? 'agendado');
   const [notas, setNotas] = useState(pedido?.notas ?? '');
   const [pago, setPago] = useState(pedido?.pago ?? false);
-  const [prioridadeCostureira, setPrioridadeCostureira] = useState(pedido?.prioridadeCostureira?.toString() ?? '');
+  const [prioridadeUrgente, setPrioridadeUrgente] = useState(
+    pedido?.prioridadeCostureira != null && pedido.prioridadeCostureira <= 1
+  );
   const [itens, setItens] = useState<ItemPedido[]>(pedido?.itens ? [...pedido.itens] : []);
   const [buscaProduto, setBuscaProduto] = useState('');
+  const [erro, setErro] = useState('');
+  const [salvando, setSalvando] = useState(false);
 
   const produtosFiltrados = produtos.filter(
     (p) =>
-      p.descricao.toLowerCase().includes(buscaProduto.toLowerCase()) ||
-      p.tipo.toLowerCase().includes(buscaProduto.toLowerCase())
+      (p.descricao.toLowerCase().includes(buscaProduto.toLowerCase()) ||
+        p.tipo.toLowerCase().includes(buscaProduto.toLowerCase())) &&
+      podeAlugar(p)
   );
 
   const addItem = (produtoId: string) => {
+    const prod = produtos.find((p) => p.id === produtoId);
+    if (!prod || !podeAlugar(prod)) {
+      setErro('Produto indisponível ou fora de estoque.');
+      return;
+    }
+    setErro('');
     const exist = itens.find((i) => i.produtoId === produtoId);
     if (exist) {
-      setItens((prev) => prev.map((i) => (i.produtoId === produtoId ? { ...i, quantidade: i.quantidade + 1 } : i)));
+      if (!podeAlugar(prod, exist.quantidade + 1)) {
+        setErro('Quantidade solicitada excede o estoque.');
+        return;
+      }
+      setItens((prev) =>
+        prev.map((i) =>
+          i.produtoId === produtoId ? { ...i, quantidade: i.quantidade + 1 } : i
+        )
+      );
     } else {
       setItens((prev) => [...prev, { produtoId, quantidade: 1 }]);
     }
@@ -92,8 +117,13 @@ export default function PedidoForm({
   };
 
   const setQuantidade = (produtoId: string, qtd: number) => {
+    const prod = produtos.find((p) => p.id === produtoId);
     if (qtd < 1) removeItem(produtoId);
-    else setItens((prev) => prev.map((i) => (i.produtoId === produtoId ? { ...i, quantidade: qtd } : i)));
+    else if (prod && podeAlugar(prod, qtd)) {
+      setItens((prev) =>
+        prev.map((i) => (i.produtoId === produtoId ? { ...i, quantidade: qtd } : i))
+      );
+    } else setErro('Quantidade indisponível em estoque.');
   };
 
   const valorTotal = itens.reduce((s, item) => {
@@ -101,11 +131,21 @@ export default function PedidoForm({
     return s + (p?.valorAluguel ?? 0) * item.quantidade;
   }, 0);
 
-  const handleSalvar = (e: FormEvent) => {
+  const valorPagoCalculado = () => {
+    if (pago) return valorTotal;
+    if (tipoPedido === 'metade_metade') return Math.round((valorTotal / 2) * 100) / 100;
+    return pedido?.valorPago ?? 0;
+  };
+
+  const handleSalvar = async (e: FormEvent) => {
     e.preventDefault();
-    if (!clienteId) return;
+    setErro('');
+    if (!clienteId) {
+      setErro('Selecione um cliente.');
+      return;
+    }
     if (itens.length === 0) {
-      alert('Adicione ao menos um produto ao pedido.');
+      setErro('Adicione ao menos um produto ao pedido.');
       return;
     }
 
@@ -114,25 +154,29 @@ export default function PedidoForm({
       clienteId,
       tipoPagamento,
       tipoPedido,
-      dataAgendamento: new Date(dataAgendamento).toISOString(),
-      dataRetirada: dataRetirada ? new Date(dataRetirada).toISOString() : new Date().toISOString(),
-      dataEvento: dataEvento ? new Date(dataEvento).toISOString() : new Date().toISOString(),
+      dataAgendamento: dataAgendamento,
+      dataRetirada: dataRetirada || todayIso(),
+      dataEvento: dataEvento || todayIso(),
+      dataDevolucao: dataDevolucao || undefined,
       status,
       itens,
       valorTotal,
-      valorPago: pago ? valorTotal : pedido?.valorPago ?? 0,
+      valorPago: valorPagoCalculado(),
       pago,
       notas: notas.trim() || undefined,
-      prioridadeCostureira: prioridadeCostureira ? parseInt(prioridadeCostureira, 10) : undefined,
+      prioridadeCostureira: prioridadeUrgente ? 1 : 2,
       createdAt: pedido?.createdAt ?? new Date().toISOString(),
     };
 
-    const lista = [...store.pedidos];
-    const idx = lista.findIndex((p) => p.id === payload.id);
-    if (idx >= 0) lista[idx] = payload;
-    else lista.push(payload);
-    store.pedidos = lista;
-    onSalvo();
+    setSalvando(true);
+    try {
+      await salvarPedido(payload, pedido);
+      onSalvo();
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : 'Não foi possível salvar o pedido.');
+    } finally {
+      setSalvando(false);
+    }
   };
 
   return (
@@ -187,30 +231,23 @@ export default function PedidoForm({
         </div>
         <div className="form-row">
           <label htmlFor="pedido-agendamento">Data agendamento (visita)</label>
-          <input
+          <DateInput
             id="pedido-agendamento"
-            type="date"
             value={dataAgendamento}
-            onChange={(e) => setDataAgendamento(e.target.value)}
+            onChange={setDataAgendamento}
           />
         </div>
         <div className="form-row">
           <label htmlFor="pedido-prazo">Prazo entrega (data retirada)</label>
-          <input
-            id="pedido-prazo"
-            type="date"
-            value={dataRetirada}
-            onChange={(e) => setDataRetirada(e.target.value)}
-          />
+          <DateInput id="pedido-prazo" value={dataRetirada} onChange={setDataRetirada} />
         </div>
         <div className="form-row">
           <label htmlFor="pedido-evento">Data do evento</label>
-          <input
-            id="pedido-evento"
-            type="date"
-            value={dataEvento}
-            onChange={(e) => setDataEvento(e.target.value)}
-          />
+          <DateInput id="pedido-evento" value={dataEvento} onChange={setDataEvento} />
+        </div>
+        <div className="form-row">
+          <label htmlFor="pedido-devolucao">Data devolução</label>
+          <DateInput id="pedido-devolucao" value={dataDevolucao} onChange={setDataDevolucao} />
         </div>
         <div className="form-row">
           <label htmlFor="pedido-status">Status</label>
@@ -242,17 +279,16 @@ export default function PedidoForm({
             checked={pago}
             onChange={(e) => setPago(e.target.checked)}
           />
-          <label htmlFor="pedido-pago">Pagamento realizado</label>
+          <label htmlFor="pedido-pago">Pagamento realizado (PIX, cartão ou à vista)</label>
         </div>
-        <div className="form-row">
-          <label htmlFor="pedido-prioridade">Prioridade costureira (1 = maior)</label>
+        <div className="form-row checkbox-row">
           <input
-            id="pedido-prioridade"
-            type="number"
-            min={1}
-            value={prioridadeCostureira}
-            onChange={(e) => setPrioridadeCostureira(e.target.value)}
+            id="pedido-urgente"
+            type="checkbox"
+            checked={prioridadeUrgente}
+            onChange={(e) => setPrioridadeUrgente(e.target.checked)}
           />
+          <label htmlFor="pedido-urgente">Prioridade urgente (costureira)</label>
         </div>
 
         <fieldset className="itens-fieldset">
@@ -260,7 +296,7 @@ export default function PedidoForm({
           <div className="busca-produto">
             <input
               type="search"
-              placeholder="Pesquisar produtos no acervo"
+              placeholder="Pesquisar produtos disponíveis"
               value={buscaProduto}
               onChange={(e) => setBuscaProduto(e.target.value)}
               aria-label="Pesquisar produtos"
@@ -273,36 +309,50 @@ export default function PedidoForm({
                 <li key={item.produtoId}>
                   <span>{p?.descricao ?? item.produtoId}</span>
                   <div className="qtd-control">
-                    <button type="button" onClick={() => setQuantidade(item.produtoId, item.quantidade - 1)} aria-label="Diminuir quantidade">−</button>
+                    <button
+                      type="button"
+                      onClick={() => setQuantidade(item.produtoId, item.quantidade - 1)}
+                      aria-label="Diminuir quantidade"
+                    >
+                      −
+                    </button>
                     <span>{item.quantidade}</span>
-                    <button type="button" onClick={() => setQuantidade(item.produtoId, item.quantidade + 1)} aria-label="Aumentar quantidade">+</button>
+                    <button
+                      type="button"
+                      onClick={() => setQuantidade(item.produtoId, item.quantidade + 1)}
+                      aria-label="Aumentar quantidade"
+                    >
+                      +
+                    </button>
                   </div>
-                  <button type="button" className="btn-remove" onClick={() => removeItem(item.produtoId)}>Remover</button>
+                  <button type="button" className="btn-remove" onClick={() => removeItem(item.produtoId)}>
+                    Remover
+                  </button>
                 </li>
               );
             })}
           </ul>
           <div className="add-produtos">
             {produtosFiltrados.slice(0, 8).map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                className="btn-add-prod"
-                onClick={() => addItem(p.id)}
-              >
-                + {p.descricao}
+              <button key={p.id} type="button" className="btn-add-prod" onClick={() => addItem(p.id)}>
+                + {p.descricao} ({p.quantidade} un.)
               </button>
             ))}
           </div>
-          <p className="valor-total">Valor total: R$ {valorTotal.toFixed(2).replace('.', ',')}</p>
+          <p className="valor-total">
+            Valor total: R$ {valorTotal.toFixed(2).replace('.', ',')} — Pago: R{' '}
+            {valorPagoCalculado().toFixed(2).replace('.', ',')}
+          </p>
         </fieldset>
 
+        {erro && <p className="form-erro" role="alert">{erro}</p>}
+
         <div className="form-actions">
-          <button type="button" className="btn-secondary" onClick={onCancelar}>
+          <button type="button" className="btn-secondary" onClick={onCancelar} disabled={salvando}>
             Cancelar
           </button>
-          <button type="submit" className="btn-primary">
-            Salvar
+          <button type="submit" className="btn-primary" disabled={salvando}>
+            {salvando ? 'Salvando…' : 'Salvar'}
           </button>
         </div>
       </form>

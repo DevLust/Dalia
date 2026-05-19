@@ -1,21 +1,293 @@
 @import './theme.css';
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :root {
-  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font: 16px/1.5 'Inter', system-ui, sans-serif;
   color: var(--dalia-text);
   background: var(--dalia-bg);
   -webkit-font-smoothing: antialiased;
 }
 
+html {
+  font-size: 100%;
+}
+
 body {
   margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background: var(--dalia-bg);
 }
 
 #root {
   min-height: 100vh;
 }
 
-/* Suporte a zoom até 200% (documentação - item 8) */
-html {
-  font-size: 100%;
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--dalia-primary);
+  outline-offset: 2px;
+}
+
+.page-title {
+  margin: 0 0 0.35rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--dalia-text);
+  letter-spacing: -0.02em;
+}
+
+.page-desc {
+  color: var(--dalia-text-muted);
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filtro-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--dalia-radius);
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  font-size: 0.95rem;
+}
+
+.filtro-input:focus {
+  outline: 2px solid var(--dalia-primary);
+  outline-offset: 0;
+  border-color: var(--dalia-primary-light);
+  background: #fff;
+}
+
+select {
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--dalia-radius);
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+select:focus {
+  outline: 2px solid var(--dalia-primary);
+  background: #fff;
+}
+
+.form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+
+.card {
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: var(--dalia-radius-lg);
+  padding: 1.35rem;
+  box-shadow: var(--dalia-shadow);
+}
+
+.card h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--dalia-text-muted);
+}
+
+.tabela-wrap {
+  overflow-x: auto;
+  background: var(--dalia-bg-card);
+  border: 1px solid var(--dalia-border);
+  border-radius: var(--dalia-radius-lg);
+  box-shadow: var(--dalia-shadow);
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+  border: none;
+}
+
+.tabela th,
+.tabela td {
+  padding: 0.9rem 1.15rem;
+  text-align: left;
+  border-bottom: 1px solid var(--dalia-border);
+  color: var(--dalia-text);
+  font-size: 0.9rem;
+}
+
+.tabela th {
+  background: #fafbfd;
+  font-weight: 600;
+  color: var(--dalia-text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabela tbody tr:hover {
+  background: var(--dalia-primary-light);
+}
+
+.tabela .btn-sm {
+  margin-right: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  font-weight: 500;
+}
+
+.tabela .btn-sm.danger {
+  background: var(--dalia-danger-bg);
+  color: var(--dalia-danger);
+}
+
+.tabela .btn-sm:hover {
+  opacity: 0.85;
+}
+
+.btn-primary {
+  background: var(--dalia-primary);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--dalia-radius);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(91, 108, 248, 0.35);
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  background: var(--dalia-primary-hover);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--dalia-primary);
+  outline-offset: 2px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  padding: 0.6rem 1.15rem;
+  background: #fff;
+  color: var(--dalia-primary);
+  border: 1.5px solid var(--dalia-primary);
+  border-radius: var(--dalia-radius);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover {
+  background: var(--dalia-primary-light);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: var(--dalia-success-bg);
+  color: var(--dalia-success);
+}
+
+.badge-warning {
+  background: var(--dalia-warning-bg);
+  color: var(--dalia-warning);
+}
+
+.badge-danger {
+  background: var(--dalia-danger-bg);
+  color: var(--dalia-danger);
+}
+
+.badge-info {
+  background: var(--dalia-info-bg);
+  color: var(--dalia-primary);
+}
+
+.form-erro {
+  color: var(--dalia-danger);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.vazio {
+  color: var(--dalia-text-light);
+  margin: 0;
+  padding: 1rem;
+}
+
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-size: 1.05rem;
+  color: var(--dalia-text-muted);
 }

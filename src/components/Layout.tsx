@@ -1,59 +1,110 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 import './Layout.css';
 
 const MENU = [
-  { to: '/', label: 'Painel', icon: '📊', desc: 'Abre o Painel' },
-  { to: '/pedidos', label: 'Pedidos', icon: '📋', desc: 'Página de pedidos' },
-  { to: '/clientes', label: 'Clientes', icon: '👥', desc: 'Página de clientes' },
-  { to: '/acervo', label: 'Acervo', icon: '👗', desc: 'Produtos no estoque' },
-  { to: '/agenda', label: 'Agenda', icon: '📅', desc: 'Horários e cronograma' },
-  { to: '/costureiras', label: 'Costureiras', icon: '✂️', desc: 'Ajustes e prioridades' },
-  { to: '/relatorios', label: 'Relatórios', icon: '📈', desc: 'Relatórios e filtros' },
-  { to: '/configuracoes', label: 'Configurações', icon: '⚙️', desc: 'Conta e segurança' },
+  { to: '/', label: 'Painel', icon: '▦', desc: 'Painel' },
+  { to: '/pedidos', label: 'Pedidos', icon: '🛍', desc: 'Pedidos' },
+  { to: '/clientes', label: 'Clientes', icon: '👤', desc: 'Clientes' },
+  { to: '/acervo', label: 'Acervo', icon: '📁', desc: 'Acervo' },
+  { to: '/agenda', label: 'Agenda', icon: '📅', desc: 'Agenda' },
+  { to: '/costureiras', label: 'Costureiras', icon: '✂', desc: 'Costureiras' },
+  { to: '/relatorios', label: 'Relatórios', icon: '📊', desc: 'Relatórios' },
+  { to: '/configuracoes', label: 'Configurações', icon: '⚙', desc: 'Configurações' },
 ];
+
+const PAGE_NAMES: Record<string, string> = {
+  '/': 'Painel',
+  '/pedidos': 'Pedidos',
+  '/clientes': 'Clientes',
+  '/acervo': 'Acervo',
+  '/agenda': 'Agenda',
+  '/costureiras': 'Costureiras',
+  '/relatorios': 'Relatórios',
+  '/configuracoes': 'Configurações',
+};
+
+function getPageName(pathname: string) {
+  if (pathname.startsWith('/promissoria')) return 'Promissória';
+  return PAGE_NAMES[pathname] ?? 'Dália';
+}
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { notificacoes, marcarNotificacao, error: dataError, pedidos } = useData();
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const naoLidas = notificacoes.filter((n) => !n.lida);
+  const pedidosPendentes = pedidos.filter(
+    (p) => p.status === 'agendado' || p.status === 'em_atendimento'
+  ).length;
+
+  const pageName = getPageName(location.pathname);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const iniciais = user?.nome
+    ?.split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() ?? '?';
+
   return (
     <div className="layout">
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`} aria-label="Menu principal">
+        <Link
+          to="/"
+          className="sidebar-brand"
+          title="Dália Ateliê de Noivas"
+          onClick={() => setMenuOpen(false)}
+        >
+          <img src="/logo.jpeg" alt="Dália Ateliê de Noivas" className="brand-logo" />
+        </Link>
         <nav>
-          {MENU.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={location.pathname === item.to ? 'active' : ''}
-              aria-current={location.pathname === item.to ? 'page' : undefined}
-              title={item.desc}
-              onClick={() => setMenuOpen(false)}
-            >
-              <span className="icon" aria-hidden="true">{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
-          <button
-            type="button"
-            className="sair"
-            onClick={handleLogout}
-            title="Sair da aplicação"
-            aria-label="Sair da aplicação"
-          >
-            <span className="icon" aria-hidden="true">🚪</span>
-            <span>Sair</span>
-          </button>
+          {MENU.map((item) => {
+            const active =
+              location.pathname === item.to ||
+              (item.to !== '/' && location.pathname.startsWith(item.to));
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={active ? 'active' : ''}
+                aria-current={active ? 'page' : undefined}
+                title={item.desc}
+                onClick={() => setMenuOpen(false)}
+              >
+                <span className="nav-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="nav-label">{item.label}</span>
+                {item.to === '/pedidos' && pedidosPendentes > 0 && (
+                  <span className="nav-badge">{pedidosPendentes}</span>
+                )}
+              </Link>
+            );
+          })}
         </nav>
+        <button
+          type="button"
+          className="sair"
+          onClick={handleLogout}
+          title="Sair da aplicação"
+          aria-label="Sair da aplicação"
+        >
+          <span className="nav-icon" aria-hidden="true">
+            ⎋
+          </span>
+          <span className="nav-label">Sair</span>
+        </button>
       </aside>
 
       <div className="main-wrap">
@@ -67,31 +118,67 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             ☰
           </button>
-          <Link to="/" className="logo-link" title="Retorna ao painel">
-            Dália Ateliê
-          </Link>
+          <div className="topbar-title-block">
+            <img
+              src="/logo.jpeg"
+              alt=""
+              className="topbar-logo"
+              aria-hidden="true"
+            />
+            <nav className="breadcrumbs" aria-label="Navegação">
+              <Link to="/">⌂</Link>
+              <span className="bc-sep">/</span>
+              <span>{pageName}</span>
+            </nav>
+          </div>
           <div className="topbar-right">
             <div className="notif-wrap">
               <button
                 type="button"
                 className="notif-btn"
                 onClick={() => setNotifOpen((o) => !o)}
-                aria-label="Mostrar notificações"
+                aria-label="Notificações"
                 aria-expanded={notifOpen}
-                title="Notificações"
               >
                 🔔
+                {naoLidas.length > 0 && <span className="notif-badge">{naoLidas.length}</span>}
               </button>
               {notifOpen && (
                 <div className="notif-dropdown" role="menu">
                   <p className="notif-title">Notificações</p>
-                  <p className="notif-empty">Nenhuma notificação recente.</p>
+                  {dataError && (
+                    <p className="notif-erro" role="alert">
+                      {dataError}
+                    </p>
+                  )}
+                  {notificacoes.length === 0 ? (
+                    <p className="notif-empty">Nenhuma notificação recente.</p>
+                  ) : (
+                    <ul className="notif-list">
+                      {notificacoes.slice(0, 8).map((n) => (
+                        <li key={n.id} className={n.lida ? 'lida' : ''}>
+                          <strong>{n.titulo}</strong>
+                          <p>{n.mensagem}</p>
+                          {!n.lida && (
+                            <button
+                              type="button"
+                              className="btn-sm"
+                              onClick={() => void marcarNotificacao(n.id)}
+                            >
+                              Marcar como lida
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>
-            <span className="user-id" title="Usuário ativo">
-              {user?.nome ?? 'Usuário'}
-            </span>
+            <div className="user-chip" title={user?.nome}>
+              <span className="user-avatar">{iniciais}</span>
+              <span className="user-name">{user?.nome?.split(' ')[0] ?? 'Usuário'}</span>
+            </div>
           </div>
         </header>
 

@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Usuario } from '../types';
-import { store } from '../store';
+import { loginUsuario } from '../lib/db';
 
 interface AuthContextType {
   user: Usuario | null;
-  login: (email: string, senha: string) => boolean;
+  login: (email: string, senha: string) => Promise<boolean>;
   logout: () => void;
   isAdmin: boolean;
+  authLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -14,24 +15,34 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(() => {
     const saved = sessionStorage.getItem('dalia_user');
-    if (saved) try { return JSON.parse(saved) as Usuario; } catch { }
+    if (saved) {
+      try {
+        return JSON.parse(saved) as Usuario;
+      } catch {
+        void 0;
+      }
+    }
     return null;
   });
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     if (user) sessionStorage.setItem('dalia_user', JSON.stringify(user));
     else sessionStorage.removeItem('dalia_user');
   }, [user]);
 
-  const login = (email: string, senha: string): boolean => {
-    const u = store.usuarios.find(
-      (x) => x.email.toLowerCase() === email.toLowerCase() && x.senha === senha
-    );
-    if (u) {
-      setUser({ ...u });
-      return true;
+  const login = async (email: string, senha: string): Promise<boolean> => {
+    setAuthLoading(true);
+    try {
+      const u = await loginUsuario(email, senha);
+      if (u) {
+        setUser({ ...u });
+        return true;
+      }
+      return false;
+    } finally {
+      setAuthLoading(false);
     }
-    return false;
   };
 
   const logout = () => setUser(null);
@@ -39,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user ? user.papel === 'administrador' : false;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, login, logout, isAdmin, authLoading }}>
       {children}
     </AuthContext.Provider>
   );

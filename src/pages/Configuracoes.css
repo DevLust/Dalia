@@ -1,8 +1,3 @@
-.config-page .page-desc {
-  color: var(--dalia-text-muted);
-  margin: 0 0 1rem 0;
-}
-
 .config-tabs {
   display: flex;
   gap: 0.5rem;
@@ -11,13 +6,14 @@
 }
 
 .config-tabs button {
-  padding: 0.5rem 1rem;
-  background: var(--dalia-bg-sidebar);
-  border: 1px solid var(--dalia-border);
-  color: var(--dalia-text);
-  border-radius: 6px;
+  padding: 0.55rem 1.1rem;
+  background: var(--dalia-bg-input);
+  border: 1px solid transparent;
+  color: var(--dalia-text-muted);
+  border-radius: var(--dalia-radius);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .config-tabs button:hover {
@@ -25,18 +21,18 @@
 }
 
 .config-tabs button.active {
-  background: var(--dalia-rose);
-  border-color: var(--dalia-rose);
+  background: var(--dalia-primary);
+  border-color: var(--dalia-primary);
   color: #fff;
 }
 
 .config-panel {
   background: var(--dalia-bg-card);
   border: 1px solid var(--dalia-border);
-  border-radius: 8px;
+  border-radius: var(--dalia-radius-lg);
   padding: 1.5rem;
-  max-width: 560px;
-  box-shadow: 0 1px 4px var(--dalia-shadow);
+  max-width: 640px;
+  box-shadow: var(--dalia-shadow);
 }
 
 .config-panel .form-row {
@@ -45,63 +41,30 @@
 
 .config-panel label {
   display: block;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
   font-weight: 500;
-  color: var(--dalia-text);
+  font-size: 0.875rem;
+  color: var(--dalia-text-muted);
 }
 
 .config-panel input {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--dalia-border);
-  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--dalia-radius);
   background: var(--dalia-bg-input);
   color: var(--dalia-text);
   box-sizing: border-box;
 }
 
-.config-panel .btn-primary {
-  margin-top: 0.5rem;
-  background: var(--dalia-rose);
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.config-panel .tabela {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-.config-panel .tabela th,
-.config-panel .tabela td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid var(--dalia-border);
-  color: var(--dalia-text);
-}
-
-.config-panel .tabela th {
-  background: var(--dalia-bg-sidebar);
-  font-weight: 600;
-}
-
-.config-panel .hint {
-  color: var(--dalia-text-muted);
+.config-msg {
+  color: var(--dalia-success);
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }
 
-.config-panel .btn-sm.danger {
-  padding: 0.35rem 0.6rem;
-  font-size: 0.85rem;
-  background: var(--dalia-rose);
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.config-panel .hint {
+  color: var(--dalia-text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
 }

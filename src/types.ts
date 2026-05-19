@@ -1,12 +1,10 @@
-// Tipos do sistema Dália Ateliê de Noivas (conforme documento)
-
 export type Papel = 'cliente' | 'atendente' | 'administrador' | 'gerente';
 
 export interface Usuario {
   id: string;
   nome: string;
   email: string;
-  senha: string; // em produção seria hash
+  senha: string;
   papel: Papel;
 }
 
@@ -16,7 +14,8 @@ export type StatusProduto =
   | 'costureira'
   | 'emprestado'
   | 'danificado'
-  | 'conserto';
+  | 'conserto'
+  | 'fora_estoque';
 
 export interface Medidas {
   busto?: number;
@@ -31,7 +30,6 @@ export interface Cliente {
   id: string;
   nome: string;
   cpf: string;
-  identidade?: string;
   endereco: string;
   telefone: string;
   email?: string;
@@ -41,13 +39,19 @@ export interface Cliente {
 
 export interface Produto {
   id: string;
-  tipo: string; // vestido, etc.
+  tipo: string;
   descricao: string;
   dataCadastro: string;
-  imagem?: string; // base64 ou URL
+  imagem?: string;
   status: StatusProduto;
+  quantidade: number;
   valorAluguel?: number;
   valorCalcao?: number;
+}
+
+export interface EmpresaConfig {
+  nomeEmpresa: string;
+  enderecoEmpresa: string;
 }
 
 export type TipoPagamento = 'vista' | 'cartao' | 'pix';
@@ -82,7 +86,7 @@ export interface Pedido {
   valorPago?: number;
   pago: boolean;
   notas?: string;
-  prioridadeCostureira?: number; // 1 = mais prioritário
+  prioridadeCostureira?: number;
   createdAt: string;
 }
 

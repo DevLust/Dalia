@@ -1,18 +1,11 @@
-import { useState, useEffect } from 'react';
-import { store } from '../store';
-import type { Cliente } from '../types';
+import { useState } from 'react';
+import { useData } from '../contexts/DataContext';
 import ClienteForm from '../components/ClienteForm';
-import './Clientes.css';
-
 export default function Clientes() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const { clientes, excluirCliente } = useData();
   const [filtro, setFiltro] = useState('');
   const [editarId, setEditarId] = useState<string | null>(null);
   const [novo, setNovo] = useState(false);
-
-  useEffect(() => {
-    setClientes(store.clientes);
-  }, []);
 
   const filtrados = clientes.filter(
     (c) =>
@@ -21,14 +14,9 @@ export default function Clientes() {
       c.telefone.replace(/\D/g, '').includes(filtro.replace(/\D/g, ''))
   );
 
-  const refresh = () => {
-    setClientes([...store.clientes]);
-  };
-
-  const handleExcluir = (id: string) => {
+  const handleExcluir = async (id: string) => {
     if (confirm('Excluir este cliente?')) {
-      store.clientes = store.clientes.filter((c) => c.id !== id);
-      refresh();
+      await excluirCliente(id);
       if (editarId === id) setEditarId(null);
     }
   };
@@ -37,7 +25,10 @@ export default function Clientes() {
 
   return (
     <div className="clientes-page">
-      <h1 className="page-title">Clientes</h1>
+      <header className="page-header">
+        <h1 className="page-title">Clientes</h1>
+        <p className="page-desc">Cadastro e gestão de clientes</p>
+      </header>
 
       <div className="toolbar">
         <input
@@ -48,7 +39,14 @@ export default function Clientes() {
           className="filtro-input"
           aria-label="Filtrar clientes"
         />
-        <button type="button" className="btn-primary" onClick={() => { setNovo(true); setEditarId(null); }}>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => {
+            setNovo(true);
+            setEditarId(null);
+          }}
+        >
           Novo cliente
         </button>
       </div>
@@ -56,9 +54,9 @@ export default function Clientes() {
       {(novo || clienteEmEdicao) && (
         <div className="form-overlay">
           <ClienteForm
+            key={novo ? 'novo' : editarId ?? 'novo'}
             cliente={clienteEmEdicao ?? undefined}
             onSalvo={() => {
-              refresh();
               setNovo(false);
               setEditarId(null);
             }}
@@ -94,10 +92,17 @@ export default function Clientes() {
                   <td>{c.telefone}</td>
                   <td>{c.endereco}</td>
                   <td>
-                    <button type="button" className="btn-sm" onClick={() => { setEditarId(c.id); setNovo(false); }}>
+                    <button
+                      type="button"
+                      className="btn-sm"
+                      onClick={() => {
+                        setEditarId(c.id);
+                        setNovo(false);
+                      }}
+                    >
                       Editar
                     </button>
-                    <button type="button" className="btn-sm danger" onClick={() => handleExcluir(c.id)}>
+                    <button type="button" className="btn-sm danger" onClick={() => void handleExcluir(c.id)}>
                       Excluir
                     </button>
                   </td>

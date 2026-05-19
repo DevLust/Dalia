@@ -1,12 +1,13 @@
 import { useParams } from 'react-router-dom';
-import { store } from '../store';
+import { useData } from '../contexts/DataContext';
+import { formatDate } from '../lib/dates';
 import './Promissoria.css';
 
 export default function Promissoria() {
   const { id } = useParams<{ id: string }>();
-  const pedido = store.pedidos.find((p) => p.id === id);
-  const cliente = pedido ? store.clientes.find((c) => c.id === pedido.clienteId) : null;
-  const produtos = store.produtos;
+  const { pedidos, clientes, produtos, empresa } = useData();
+  const pedido = pedidos.find((p) => p.id === id);
+  const cliente = pedido ? clientes.find((c) => c.id === pedido.clienteId) : null;
 
   if (!pedido || !cliente) {
     return (
@@ -22,17 +23,6 @@ export default function Promissoria() {
     return s + (p?.valorCalcao ?? 0) * i.quantidade;
   }, 0);
 
-  const empresa = (() => {
-    try {
-      const s = localStorage.getItem('dalia_empresa');
-      if (s) return JSON.parse(s);
-    } catch (_) {}
-    return {
-      nomeEmpresa: 'Dália Ateliê de Noivas',
-      enderecoEmpresa: 'Rua Alberto Giovanini, nº 222, Betânia, Ipatinga - MG',
-    };
-  })();
-
   const formatCPF = (v: string) => {
     const d = v.replace(/\D/g, '');
     if (d.length < 11) return v;
@@ -42,12 +32,19 @@ export default function Promissoria() {
   return (
     <div className="promissoria-page" role="document">
       <div className="promissoria-doc">
+        <img
+          src="/logo.jpeg"
+          alt="Dália Ateliê de Noivas"
+          className="promissoria-logo"
+        />
         <h1>PROMISSÓRIA</h1>
         <p className="empresa">{empresa.nomeEmpresa}</p>
         <p className="endereco-empresa">{empresa.enderecoEmpresa}</p>
 
         <p className="intro">
-          Pelo presente documento, o(a) contratado(a) declara ter ciência das condições de aluguel e se compromete a devolver o(s) item(ns) no prazo e estado combinados, sob pena de cobrança do valor do calção em caso de danos.
+          Pelo presente documento, o(a) contratado(a) declara ter ciência das condições de aluguel e se
+          compromete a devolver o(s) item(ns) no prazo e estado combinados, sob pena de cobrança do valor
+          do calção em caso de danos.
         </p>
 
         <table className="dados-tabela">
@@ -61,10 +58,6 @@ export default function Promissoria() {
               <td>{formatCPF(cliente.cpf)}</td>
             </tr>
             <tr>
-              <th>Identidade</th>
-              <td>{cliente.identidade || '-'}</td>
-            </tr>
-            <tr>
               <th>Endereço</th>
               <td>{cliente.endereco}</td>
             </tr>
@@ -74,11 +67,15 @@ export default function Promissoria() {
             </tr>
             <tr>
               <th>Data retirada (prevista)</th>
-              <td>{new Date(pedido.dataRetirada).toLocaleDateString('pt-BR')}</td>
+              <td>{formatDate(pedido.dataRetirada)}</td>
             </tr>
             <tr>
               <th>Data do evento</th>
-              <td>{new Date(pedido.dataEvento).toLocaleDateString('pt-BR')}</td>
+              <td>{formatDate(pedido.dataEvento)}</td>
+            </tr>
+            <tr>
+              <th>Data devolução</th>
+              <td>{pedido.dataDevolucao ? formatDate(pedido.dataDevolucao) : '-'}</td>
             </tr>
             <tr>
               <th>Valor do aluguel</th>
@@ -88,16 +85,23 @@ export default function Promissoria() {
               <th>Valor do calção (em caso de dano)</th>
               <td>R$ {valorCalcao.toFixed(2).replace('.', ',')}</td>
             </tr>
+            <tr>
+              <th>Forma de pagamento</th>
+              <td>{pedido.tipoPagamento.toUpperCase()}</td>
+            </tr>
+            <tr>
+              <th>Status pagamento</th>
+              <td>{pedido.pago ? 'Quitado' : 'Pendente'}</td>
+            </tr>
           </tbody>
         </table>
 
         <p className="assinatura">
-          _________________________________________<br />
+          _________________________________________
+          <br />
           Assinatura do(a) contratado(a)
         </p>
-        <p className="data-doc">
-          Em {new Date().toLocaleDateString('pt-BR')}
-        </p>
+        <p className="data-doc">Em {formatDate(new Date())}</p>
       </div>
       <button type="button" className="btn-print" onClick={() => window.print()}>
         Imprimir / Salvar PDF

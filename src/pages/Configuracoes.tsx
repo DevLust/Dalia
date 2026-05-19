@@ -1,53 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../contexts/DataContext';
 import { store } from '../store';
 import type { Usuario } from '../types';
 import './Configuracoes.css';
 
 export default function Configuracoes() {
   const { user, isAdmin } = useAuth();
+  const { empresa, salvarEmpresaConfig, excluirUsuario } = useData();
   const [aba, setAba] = useState<'conta' | 'empresa' | 'seguranca' | 'usuarios'>('conta');
-  const [nomeEmpresa, setNomeEmpresa] = useState('Dália Ateliê de Noivas');
-  const [enderecoEmpresa, setEnderecoEmpresa] = useState('Rua Alberto Giovanini, nº 222, Betânia, Ipatinga - MG');
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [nomeEmpresa, setNomeEmpresa] = useState(empresa.nomeEmpresa);
+  const [enderecoEmpresa, setEnderecoEmpresa] = useState(empresa.enderecoEmpresa);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(() => [...store.usuarios]);
+  const [msg, setMsg] = useState('');
 
-  useEffect(() => {
-    setUsuarios(store.usuarios);
-  }, []);
-
-  useEffect(() => {
-    try {
-      const s = localStorage.getItem('dalia_empresa');
-      if (s) {
-        const data = JSON.parse(s);
-        if (data.nomeEmpresa) setNomeEmpresa(data.nomeEmpresa);
-        if (data.enderecoEmpresa) setEnderecoEmpresa(data.enderecoEmpresa);
-      }
-    } catch (_) {}
-  }, []);
-
-  const handleSalvarEmpresa = () => {
-    localStorage.setItem('dalia_empresa', JSON.stringify({ nomeEmpresa, enderecoEmpresa }));
-    alert('Dados da empresa salvos.');
+  const handleSalvarEmpresa = async () => {
+    await salvarEmpresaConfig({ nomeEmpresa, enderecoEmpresa });
+    setMsg('Dados da empresa salvos.');
   };
 
-  const handleRemoverUsuario = (id: string) => {
+  const handleRemoverUsuario = async (id: string) => {
     if (id === user?.id) {
       alert('Você não pode remover seu próprio usuário.');
       return;
     }
     if (confirm('Remover este usuário?')) {
-      store.usuarios = store.usuarios.filter((u) => u.id !== id);
+      await excluirUsuario(id);
       setUsuarios([...store.usuarios]);
     }
   };
 
   return (
     <div className="config-page">
-      <h1 className="page-title">Configurações</h1>
-      <p className="page-desc">
-        Alteração de informações da conta, da empresa e de segurança.
-      </p>
+      <header className="page-header">
+        <h1 className="page-title">Configurações</h1>
+        <p className="page-desc">Conta, empresa e usuários do sistema.</p>
+      </header>
 
       <div className="config-tabs" role="tablist">
         <button
@@ -91,11 +79,19 @@ export default function Configuracoes() {
       </div>
 
       <div className="config-panel">
+        {msg && <p className="config-msg" role="status">{msg}</p>}
+
         {aba === 'conta' && (
           <section aria-label="Dados da conta">
-            <p><strong>Nome:</strong> {user?.nome}</p>
-            <p><strong>E-mail:</strong> {user?.email}</p>
-            <p><strong>Papel:</strong> {user?.papel}</p>
+            <p>
+              <strong>Nome:</strong> {user?.nome}
+            </p>
+            <p>
+              <strong>E-mail:</strong> {user?.email}
+            </p>
+            <p>
+              <strong>Papel:</strong> {user?.papel}
+            </p>
           </section>
         )}
 
@@ -117,7 +113,7 @@ export default function Configuracoes() {
                 onChange={(e) => setEnderecoEmpresa(e.target.value)}
               />
             </div>
-            <button type="button" className="btn-primary" onClick={handleSalvarEmpresa}>
+            <button type="button" className="btn-primary" onClick={() => void handleSalvarEmpresa()}>
               Salvar
             </button>
           </section>
@@ -125,13 +121,15 @@ export default function Configuracoes() {
 
         {aba === 'seguranca' && (
           <section aria-label="Segurança">
-            <p>Alteração de senha e opções de segurança podem ser implementadas aqui.</p>
+            <p>
+              Em produção, substitua senhas em texto por autenticação segura do Supabase Auth.
+            </p>
           </section>
         )}
 
         {aba === 'usuarios' && isAdmin && (
           <section aria-label="Gestão de usuários">
-            <p className="hint">O administrador pode adicionar ou remover usuários do sistema (RF009).</p>
+            <p className="hint">Administrador pode remover usuários (RF009).</p>
             <table className="tabela">
               <thead>
                 <tr>
@@ -152,7 +150,7 @@ export default function Configuracoes() {
                         <button
                           type="button"
                           className="btn-sm danger"
-                          onClick={() => handleRemoverUsuario(u.id)}
+                          onClick={() => void handleRemoverUsuario(u.id)}
                         >
                           Remover
                         </button>

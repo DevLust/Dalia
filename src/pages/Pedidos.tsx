@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { store } from '../store';
-import type { Pedido, StatusPedido } from '../types';
+import { useData } from '../contexts/DataContext';
+import type { StatusPedido, TipoPagamento } from '../types';
 import PedidoForm from '../components/PedidoForm';
+import DateInput from '../components/DateInput';
+import { formatDate } from '../lib/dates';
 import './Pedidos.css';
 
 const STATUS_LABEL: Record<StatusPedido, string> = {
@@ -16,38 +18,45 @@ const STATUS_LABEL: Record<StatusPedido, string> = {
 };
 
 export default function Pedidos() {
-  const [searchParams] = useSearchParams();
-  const editarIdParam = searchParams.get('editar');
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const { pedidos, clientes, excluirPedido } = useData();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editarId = searchParams.get('editar');
   const [filtro, setFiltro] = useState('');
   const [filtroStatus, setFiltroStatus] = useState<StatusPedido | ''>('');
-  const [editarId, setEditarId] = useState<string | null>(editarIdParam || null);
+  const [filtroPagamento, setFiltroPagamento] = useState<'todos' | 'pago' | 'pendente'>('todos');
+  const [filtroTipoPag, setFiltroTipoPag] = useState<TipoPagamento | ''>('');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const [novo, setNovo] = useState(false);
 
-  useEffect(() => {
-    setPedidos(store.pedidos);
-  }, []);
+  const clearEditarNaUrl = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('editar');
+      return next;
+    });
+  };
 
-  useEffect(() => {
-    if (editarIdParam) setEditarId(editarIdParam);
-  }, [editarIdParam]);
-
-  const clientes = store.clientes;
   const filtrados = pedidos.filter((p) => {
     const cli = clientes.find((c) => c.id === p.clienteId);
     const nome = cli?.nome ?? '';
     const matchText = nome.toLowerCase().includes(filtro.toLowerCase());
     const matchStatus = !filtroStatus || p.status === filtroStatus;
-    return matchText && matchStatus;
+    const matchPag =
+      filtroPagamento === 'todos' ||
+      (filtroPagamento === 'pago' && p.pago) ||
+      (filtroPagamento === 'pendente' && !p.pago);
+    const matchTipoPag = !filtroTipoPag || p.tipoPagamento === filtroTipoPag;
+    const retirada = p.dataRetirada.slice(0, 10);
+    const matchInicio = !dataInicio || retirada >= dataInicio;
+    const matchFim = !dataFim || retirada <= dataFim;
+    return matchText && matchStatus && matchPag && matchTipoPag && matchInicio && matchFim;
   });
 
-  const refresh = () => setPedidos([...store.pedidos]);
-
-  const handleExcluir = (id: string) => {
+  const handleExcluir = async (id: string) => {
     if (confirm('Excluir este pedido?')) {
-      store.pedidos = store.pedidos.filter((p) => p.id !== id);
-      refresh();
-      if (editarId === id) setEditarId(null);
+      await excluirPedido(id);
+      if (editarId === id) clearEditarNaUrl();
     }
   };
 
@@ -55,7 +64,10 @@ export default function Pedidos() {
 
   return (
     <div className="pedidos-page">
-      <h1 className="page-title">Pedidos</h1>
+      <header className="page-header">
+        <h1 className="page-title">Pedidos</h1>
+        <p className="page-desc">Gestão de pedidos e retiradas</p>
+      </header>
 
       <div className="toolbar">
         <input
@@ -78,7 +90,39 @@ export default function Pedidos() {
             </option>
           ))}
         </select>
-        <button type="button" className="btn-primary" onClick={() => { setNovo(true); setEditarId(null); }}>
+        <select
+          value={filtroPagamento}
+          onChange={(e) => setFiltroPagamento(e.target.value as 'todos' | 'pago' | 'pendente')}
+          aria-label="Filtrar por pagamento"
+        >
+          <option value="todos">Pagamento: todos</option>
+          <option value="pago">Pagos</option>
+          <option value="pendente">Pendentes</option>
+        </select>
+        <select
+          value={filtroTipoPag}
+          onChange={(e) => setFiltroTipoPag((e.target.value || '') as TipoPagamento | '')}
+          aria-label="Filtrar por forma de pagamento"
+        >
+          <option value="">Forma: todas</option>
+          <option value="pix">PIX</option>
+          <option value="cartao">Cartão</option>
+          <option value="vista">À vista</option>
+        </select>
+        <DateInput
+          value={dataInicio}
+          onChange={setDataInicio}
+          aria-label="Retirada a partir de"
+        />
+        <DateInput value={dataFim} onChange={setDataFim} aria-label="Retirada até" />
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={() => {
+            setNovo(true);
+            clearEditarNaUrl();
+          }}
+        >
           Novo pedido
         </button>
       </div>
@@ -88,13 +132,12 @@ export default function Pedidos() {
           <PedidoForm
             pedido={pedidoEmEdicao ?? undefined}
             onSalvo={() => {
-              refresh();
               setNovo(false);
-              setEditarId(null);
+              clearEditarNaUrl();
             }}
             onCancelar={() => {
               setNovo(false);
-              setEditarId(null);
+              clearEditarNaUrl();
             }}
           />
         </div>
@@ -123,18 +166,37 @@ export default function Pedidos() {
                 return (
                   <tr key={p.id}>
                     <td>{cli?.nome ?? '-'}</td>
-                    <td>{new Date(p.dataRetirada).toLocaleDateString('pt-BR')}</td>
-                    <td>{new Date(p.dataEvento).toLocaleDateString('pt-BR')}</td>
-                    <td><span className={`badge status-${p.status}`}>{STATUS_LABEL[p.status]}</span></td>
-                    <td>{p.pago ? 'Pago' : 'Pendente'}</td>
+                    <td>{formatDate(p.dataRetirada)}</td>
+                    <td>{formatDate(p.dataEvento)}</td>
                     <td>
-                      <button type="button" className="btn-sm" onClick={() => { setEditarId(p.id); setNovo(false); }}>
+                      <span className={`badge status-${p.status}`}>{STATUS_LABEL[p.status]}</span>
+                    </td>
+                    <td>
+                      {p.pago ? `Pago (${p.tipoPagamento})` : 'Pendente'}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="btn-sm"
+                        onClick={() => {
+                          setNovo(false);
+                          setSearchParams((prev) => {
+                            const next = new URLSearchParams(prev);
+                            next.set('editar', p.id);
+                            return next;
+                          });
+                        }}
+                      >
                         Editar
                       </button>
-                      <button type="button" className="btn-sm" onClick={() => window.open(`/promissoria/${p.id}`, '_blank')}>
+                      <button
+                        type="button"
+                        className="btn-sm"
+                        onClick={() => window.open(`/promissoria/${p.id}`, '_blank')}
+                      >
                         Promissória
                       </button>
-                      <button type="button" className="btn-sm danger" onClick={() => handleExcluir(p.id)}>
+                      <button type="button" className="btn-sm danger" onClick={() => void handleExcluir(p.id)}>
                         Excluir
                       </button>
                     </td>

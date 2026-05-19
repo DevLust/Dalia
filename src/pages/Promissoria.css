@@ -1,16 +1,28 @@
 .promissoria-page {
-  max-width: 700px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 1.5rem;
-  background: #fff;
-  color: #111;
+  padding: 2rem 1.5rem;
+  background: var(--dalia-bg-card);
+  color: var(--dalia-text);
   min-height: 100vh;
+  border-radius: var(--dalia-radius-lg);
+  box-shadow: var(--dalia-shadow-strong);
+}
+
+.promissoria-logo {
+  display: block;
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
 }
 
 .promissoria-doc h1 {
   text-align: center;
   font-size: 1.5rem;
   margin: 0 0 0.5rem 0;
+  font-weight: 700;
 }
 
 .promissoria-doc .empresa {
@@ -22,14 +34,14 @@
 .promissoria-doc .endereco-empresa {
   text-align: center;
   font-size: 0.9rem;
-  color: #444;
+  color: var(--dalia-text-muted);
   margin: 0 0 1.5rem 0;
 }
 
 .promissoria-doc .intro {
   margin: 0 0 1.5rem 0;
   text-align: justify;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .dados-tabela {
@@ -43,6 +55,7 @@
   padding: 0.5rem 1rem 0.5rem 0;
   font-weight: 600;
   width: 40%;
+  color: var(--dalia-text-muted);
 }
 
 .dados-tabela td {
@@ -52,7 +65,7 @@
 .promissoria-doc .assinatura {
   margin-top: 2rem;
   font-size: 0.9rem;
-  color: #555;
+  color: var(--dalia-text-muted);
 }
 
 .promissoria-doc .data-doc {
@@ -63,12 +76,18 @@
 .btn-print {
   margin-top: 1.5rem;
   padding: 0.75rem 1.5rem;
-  background: var(--dalia-rose);
+  background: var(--dalia-primary);
   color: #fff;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--dalia-radius);
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(91, 108, 248, 0.35);
+}
+
+.btn-print:hover {
+  background: var(--dalia-primary-hover);
 }
 
 @media print {
@@ -77,5 +96,6 @@
   }
   .promissoria-page {
     background: #fff;
+    box-shadow: none;
   }
 }
