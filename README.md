@@ -21,6 +21,8 @@ cp .env.example .env
 
 Configure as tabelas e políticas RLS diretamente no painel do Supabase (o script SQL não fica neste repositório por segurança).
 
+Para **várias fotos por produto**, execute uma vez o arquivo `docs/supabase-add-imagens.sql` no SQL Editor do Supabase.
+
 ## Desenvolvimento
 
 ```bash

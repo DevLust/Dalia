@@ -22,12 +22,46 @@
   transition: box-shadow 0.15s, transform 0.15s;
 }
 
+.produto-img-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.produto-desc-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.produto-desc-link:hover .produto-desc {
+  color: var(--dalia-primary);
+}
+
+.produto-fotos-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+}
+
+.produto-actions .btn-ver {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 .produto-card:hover {
   box-shadow: var(--dalia-shadow-strong);
   transform: translateY(-2px);
 }
 
 .produto-img {
+  position: relative;
   height: 180px;
   background: var(--dalia-bg-input);
   display: flex;

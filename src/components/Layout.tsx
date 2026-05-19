@@ -28,6 +28,7 @@ const PAGE_NAMES: Record<string, string> = {
 
 function getPageName(pathname: string) {
   if (pathname.startsWith('/promissoria')) return 'Promissória';
+  if (pathname.startsWith('/acervo/')) return 'Ver produto';
   return PAGE_NAMES[pathname] ?? 'Dália';
 }
 

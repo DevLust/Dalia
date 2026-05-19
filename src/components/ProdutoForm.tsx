@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import type { FormEvent } from 'react';
 import { generateId } from '../store';
 import { todayIso } from '../lib/dates';
+import { imagensDoProduto } from '../lib/produtoImagens';
 import DateInput from './DateInput';
 import { useData } from '../contexts/DataContext';
 import type { Produto, StatusProduto } from '../types';
@@ -27,6 +28,8 @@ const STATUS_LABEL: Record<StatusProduto, string> = {
   fora_estoque: 'Fora de estoque',
 };
 
+const MAX_FOTOS = 8;
+
 export default function ProdutoForm({
   produto,
   onSalvo,
@@ -44,19 +47,37 @@ export default function ProdutoForm({
   );
   const [status, setStatus] = useState<StatusProduto>(produto?.status ?? 'disponivel');
   const [quantidade, setQuantidade] = useState(String(produto?.quantidade ?? 1));
-  const [imagem, setImagem] = useState(produto?.imagem ?? '');
+  const [imagens, setImagens] = useState<string[]>(() => imagensDoProduto(produto ?? {}));
   const [valorAluguel, setValorAluguel] = useState(produto?.valorAluguel?.toString() ?? '');
   const [valorCalcao, setValorCalcao] = useState(produto?.valorCalcao?.toString() ?? '');
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = () => setImagem(String(r.result));
-    r.readAsDataURL(f);
+  const lerArquivos = (files: FileList | null) => {
+    if (!files?.length) return;
+    const restante = MAX_FOTOS - imagens.length;
+    if (restante <= 0) {
+      setErro(`Máximo de ${MAX_FOTOS} fotos por produto.`);
+      return;
+    }
+    const lista = Array.from(files).slice(0, restante);
+    lista.forEach((f) => {
+      const r = new FileReader();
+      r.onload = () => {
+        setImagens((prev) => {
+          if (prev.length >= MAX_FOTOS) return prev;
+          return [...prev, String(r.result)];
+        });
+      };
+      r.readAsDataURL(f);
+    });
+    setErro('');
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const removerFoto = (index: number) => {
+    setImagens((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSalvar = async (e: FormEvent) => {
@@ -67,13 +88,15 @@ export default function ProdutoForm({
       return;
     }
     const qtd = Math.max(0, parseInt(quantidade, 10) || 0);
+    const listaImagens = imagens.filter(Boolean);
 
     const payload: Produto = {
       id: produto?.id ?? generateId(),
       tipo: tipo.trim(),
       descricao: descricao.trim(),
       dataCadastro,
-      imagem: imagem || undefined,
+      imagem: listaImagens[0],
+      imagens: listaImagens.length ? listaImagens : undefined,
       status: qtd <= 0 ? 'fora_estoque' : status,
       quantidade: qtd,
       valorAluguel: valorAluguel ? parseFloat(valorAluguel.replace(',', '.')) : undefined,
@@ -154,21 +177,39 @@ export default function ProdutoForm({
             ))}
           </select>
         </div>
+
         <div className="form-row">
-          <label>Imagem</label>
+          <label>Fotos do produto</label>
+          <p className="hint">Até {MAX_FOTOS} imagens (JPEG/PNG). A primeira é a capa do card.</p>
           <input
             ref={fileRef}
             type="file"
             accept="image/*"
-            onChange={handleFile}
-            aria-label="Inserir imagem do produto"
+            multiple
+            onChange={(e) => lerArquivos(e.target.files)}
+            aria-label="Adicionar fotos do produto"
+            disabled={imagens.length >= MAX_FOTOS}
           />
-          {imagem && (
-            <div className="preview-img">
-              <img src={imagem} alt="Preview do produto" />
+          {imagens.length > 0 && (
+            <div className="galeria-upload" role="list">
+              {imagens.map((src, i) => (
+                <div key={`${i}-${src.slice(0, 24)}`} className="galeria-upload-item" role="listitem">
+                  <img src={src} alt={`Foto ${i + 1}`} />
+                  {i === 0 && <span className="galeria-capa">Capa</span>}
+                  <button
+                    type="button"
+                    className="galeria-remover"
+                    onClick={() => removerFoto(i)}
+                    aria-label={`Remover foto ${i + 1}`}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
+
         <div className="form-row">
           <label htmlFor="produto-aluguel">Valor aluguel (R$)</label>
           <input
@@ -190,7 +231,11 @@ export default function ProdutoForm({
           />
         </div>
 
-        {erro && <p className="form-erro" role="alert">{erro}</p>}
+        {erro && (
+          <p className="form-erro" role="alert">
+            {erro}
+          </p>
+        )}
 
         <div className="form-actions">
           <button type="button" className="btn-secondary" onClick={onCancelar} disabled={salvando}>

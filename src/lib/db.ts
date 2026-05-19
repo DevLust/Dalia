@@ -9,6 +9,7 @@ import type {
   ItemPedido,
 } from '../types';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { imagemPrincipal, imagensDoProduto } from './produtoImagens';
 import { statusProdutoPorPedido } from './produtoStatus';
 import { store } from '../store';
 
@@ -31,6 +32,7 @@ type ProdutoRow = {
   descricao: string;
   data_cadastro: string;
   imagem: string | null;
+  imagens?: string[] | null;
   status: string;
   quantidade: number;
   valor_aluguel: number | null;
@@ -115,12 +117,17 @@ function toClienteRow(c: Cliente): Omit<ClienteRow, 'created_at'> & { created_at
 }
 
 function fromProduto(r: ProdutoRow): Produto {
+  const imagens = imagensDoProduto({
+    imagem: r.imagem ?? undefined,
+    imagens: r.imagens ?? undefined,
+  });
   return {
     id: r.id,
     tipo: r.tipo,
     descricao: r.descricao,
     dataCadastro: r.data_cadastro,
-    imagem: r.imagem ?? undefined,
+    imagem: imagens[0],
+    imagens: imagens.length ? imagens : undefined,
     status: r.status as Produto['status'],
     quantidade: r.quantidade ?? 1,
     valorAluguel: r.valor_aluguel != null ? Number(r.valor_aluguel) : undefined,
@@ -129,12 +136,14 @@ function fromProduto(r: ProdutoRow): Produto {
 }
 
 function toProdutoRow(p: Produto): ProdutoRow {
+  const imagens = imagensDoProduto(p);
   return {
     id: p.id,
     tipo: p.tipo,
     descricao: p.descricao,
     data_cadastro: p.dataCadastro.slice(0, 10),
-    imagem: p.imagem ?? null,
+    imagem: imagemPrincipal(p) ?? null,
+    imagens: imagens.length ? imagens : null,
     status: p.quantidade <= 0 ? 'fora_estoque' : p.status,
     quantidade: p.quantidade,
     valor_aluguel: p.valorAluguel ?? null,
@@ -359,7 +368,18 @@ export async function saveProduto(produto: Produto): Promise<void> {
   store.produtos = lista;
 
   if (isSupabaseConfigured) {
-    await upsertSupabase('produtos', toProdutoRow(normalizado));
+    const row = toProdutoRow(normalizado);
+    try {
+      await upsertSupabase('produtos', row);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (row.imagens && /imagens|column/i.test(msg)) {
+        const { imagens: _omit, ...semImagens } = row;
+        await upsertSupabase('produtos', semImagens as ProdutoRow);
+      } else {
+        throw e;
+      }
+    }
   }
 }
 

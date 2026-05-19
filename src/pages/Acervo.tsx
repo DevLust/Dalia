@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
+import { imagemPrincipal } from '../lib/produtoImagens';
 import { statusEfetivo } from '../lib/produtoStatus';
 import type { StatusProduto } from '../types';
 import ProdutoForm from '../components/ProdutoForm';
@@ -17,10 +19,15 @@ const STATUS_LABEL: Record<StatusProduto, string> = {
 
 export default function Acervo() {
   const { produtos, excluirProduto } = useData();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editarId = searchParams.get('editar');
   const [filtro, setFiltro] = useState('');
   const [filtroStatus, setFiltroStatus] = useState<StatusProduto | ''>('');
-  const [editarId, setEditarId] = useState<string | null>(null);
   const [novo, setNovo] = useState(false);
+
+  useEffect(() => {
+    if (editarId) setNovo(false);
+  }, [editarId]);
 
   const filtrados = produtos.filter((p) => {
     const efetivo = statusEfetivo(p);
@@ -31,10 +38,18 @@ export default function Acervo() {
     return matchText && matchStatus;
   });
 
+  const clearEditarNaUrl = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('editar');
+      return next;
+    });
+  };
+
   const handleExcluir = async (id: string) => {
     if (confirm('Excluir este produto do acervo?')) {
       await excluirProduto(id);
-      if (editarId === id) setEditarId(null);
+      if (editarId === id) clearEditarNaUrl();
     }
   };
 
@@ -73,7 +88,7 @@ export default function Acervo() {
           className="btn-primary"
           onClick={() => {
             setNovo(true);
-            setEditarId(null);
+            clearEditarNaUrl();
           }}
         >
           Novo produto
@@ -86,11 +101,11 @@ export default function Acervo() {
             produto={produtoEmEdicao ?? undefined}
             onSalvo={() => {
               setNovo(false);
-              setEditarId(null);
+              clearEditarNaUrl();
             }}
             onCancelar={() => {
               setNovo(false);
-              setEditarId(null);
+              clearEditarNaUrl();
             }}
           />
         </div>
@@ -102,32 +117,50 @@ export default function Acervo() {
         ) : (
           filtrados.map((p) => {
             const efetivo = statusEfetivo(p);
+            const capa = imagemPrincipal(p);
+            const qtdFotos = p.imagens?.length ?? (p.imagem ? 1 : 0);
             return (
               <article key={p.id} className="produto-card">
-                <div className="produto-img">
-                  {p.imagem ? (
-                    <img src={p.imagem} alt={p.descricao} />
-                  ) : (
-                    <span className="sem-img">Sem imagem</span>
-                  )}
-                </div>
+                <Link to={`/acervo/${p.id}`} className="produto-img-link">
+                  <div className="produto-img">
+                    {capa ? (
+                      <img src={capa} alt={p.descricao} />
+                    ) : (
+                      <span className="sem-img">Sem imagem</span>
+                    )}
+                    {qtdFotos > 1 && <span className="produto-fotos-badge">{qtdFotos} fotos</span>}
+                  </div>
+                </Link>
                 <div className="produto-info">
                   <span className="produto-tipo">{p.tipo}</span>
-                  <p className="produto-desc">{p.descricao}</p>
+                  <Link to={`/acervo/${p.id}`} className="produto-desc-link">
+                    <p className="produto-desc">{p.descricao}</p>
+                  </Link>
                   <span className="badge">Estoque: {p.quantidade}</span>
                   <span className={`badge status-${efetivo}`}>{STATUS_LABEL[efetivo]}</span>
                   <div className="produto-actions">
+                    <Link to={`/acervo/${p.id}`} className="btn-sm btn-ver">
+                      Ver
+                    </Link>
                     <button
                       type="button"
                       className="btn-sm"
                       onClick={() => {
-                        setEditarId(p.id);
                         setNovo(false);
+                        setSearchParams((prev) => {
+                          const next = new URLSearchParams(prev);
+                          next.set('editar', p.id);
+                          return next;
+                        });
                       }}
                     >
                       Editar
                     </button>
-                    <button type="button" className="btn-sm danger" onClick={() => void handleExcluir(p.id)}>
+                    <button
+                      type="button"
+                      className="btn-sm danger"
+                      onClick={() => void handleExcluir(p.id)}
+                    >
                       Excluir
                     </button>
                   </div>

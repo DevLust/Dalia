@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Clientes from './pages/Clientes';
 import Acervo from './pages/Acervo';
+import AcervoDetalhe from './pages/AcervoDetalhe';
 import Pedidos from './pages/Pedidos';
 import Agenda from './pages/Agenda';
 import Costureiras from './pages/Costureiras';
@@ -57,6 +58,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Acervo />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/acervo/:id"
+              element={
+                <ProtectedRoute>
+                  <AcervoDetalhe />
                 </ProtectedRoute>
               }
             />
