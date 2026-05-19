@@ -18,6 +18,9 @@ dist-ssr
 # Logo fonte na raiz (versão servida está em public/)
 /Logo.jpeg
 
+# SQL do banco (manter só local / no painel Supabase)
+supabase/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

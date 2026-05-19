@@ -19,7 +19,7 @@ cp .env.example .env
 # Edite .env com URL e chave anon do Supabase
 ```
 
-Execute o SQL em `supabase/schema.sql` no editor SQL do Supabase (cria tabelas e dados iniciais).
+Configure as tabelas e políticas RLS diretamente no painel do Supabase (o script SQL não fica neste repositório por segurança).
 
 ## Desenvolvimento
 
@@ -29,8 +29,7 @@ npm run dev
 
 Acesse `http://localhost:5173`.
 
-**Login de demonstração** (após rodar o schema): `admin@dalia.com.br` / `admin123`  
-Altere essa senha em produção.
+Use as credenciais configuradas no seu projeto Supabase.
 
 Sem `.env` configurado, o app usa `localStorage` como fallback local.
 
