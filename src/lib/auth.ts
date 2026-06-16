@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import type { Papel, Usuario } from '../types';
 import { loginDevLocal, registerDevUser } from './devAuth';
 import { isSupabaseConfigured, supabase } from './supabase';
+import { validarEmail } from './validators';
 
 export type CriarUsuarioInput = {
   nome: string;
@@ -274,6 +275,9 @@ export async function criarUsuario(
   }
   if (!input.nome.trim() || !input.email.trim()) {
     throw new Error('Nome e e-mail são obrigatórios.');
+  }
+  if (!validarEmail(input.email)) {
+    throw new Error('E-mail inválido.');
   }
 
   if (isSupabaseConfigured && supabase) {

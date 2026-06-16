@@ -1,3 +1,12 @@
+const EMAIL_RE =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+export function validarEmail(email: string): boolean {
+  const t = email.trim();
+  if (!t || t.length > 254) return false;
+  return EMAIL_RE.test(t);
+}
+
 export function validarCPF(cpf: string): boolean {
   const d = cpf.replace(/\D/g, '');
   if (d.length !== 11) return false;
