@@ -9,6 +9,10 @@ import type {
   ItemPedido,
 } from '../types';
 import { isSupabaseConfigured, supabase } from './supabase';
+import {
+  criarUsuario as criarUsuarioAuth,
+  type CriarUsuarioInput,
+} from './auth';
 import { imagemPrincipal, imagensDoProduto } from './produtoImagens';
 import { statusProdutoPorPedido } from './produtoStatus';
 import { store } from '../store';
@@ -514,7 +518,14 @@ export async function saveEmpresa(empresa: EmpresaConfig): Promise<void> {
   }
 }
 
-export { loginUsuario, logoutUsuario } from './auth';
+export { loginUsuario, logoutUsuario, type CriarUsuarioInput } from './auth';
+
+export async function criarUsuario(actor: Usuario, input: CriarUsuarioInput): Promise<void> {
+  const novo = await criarUsuarioAuth(actor, input);
+  if (!store.usuarios.some((u) => u.id === novo.id)) {
+    store.usuarios = [...store.usuarios, novo];
+  }
+}
 
 export async function deleteUsuario(id: string): Promise<void> {
   store.usuarios = store.usuarios.filter((u) => u.id !== id);

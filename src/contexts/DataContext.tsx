@@ -13,6 +13,7 @@ import type {
   AgendaSlot,
   Notificacao,
   EmpresaConfig,
+  Usuario,
 } from '../types';
 import { store } from '../store';
 import {
@@ -27,9 +28,11 @@ import {
   removeAgendaSlot,
   saveEmpresa,
   deleteUsuario,
+  criarUsuario,
   marcarNotificacaoLida,
   readEmpresa,
 } from '../lib/db';
+import type { CriarUsuarioInput } from '../lib/db';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 interface DataContextType {
@@ -42,6 +45,7 @@ interface DataContextType {
   pedidos: Pedido[];
   agenda: AgendaSlot[];
   notificacoes: Notificacao[];
+  usuarios: Usuario[];
   empresa: EmpresaConfig;
   refresh: () => Promise<void>;
   salvarCliente: (c: Cliente) => Promise<void>;
@@ -53,6 +57,7 @@ interface DataContextType {
   salvarSlotAgenda: (s: AgendaSlot) => Promise<void>;
   removerSlotAgenda: (id: string) => Promise<void>;
   salvarEmpresaConfig: (e: EmpresaConfig) => Promise<void>;
+  criarUsuario: (actor: Usuario, input: CriarUsuarioInput) => Promise<void>;
   excluirUsuario: (id: string) => Promise<void>;
   marcarNotificacao: (id: string) => Promise<void>;
 }
@@ -108,6 +113,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       pedidos: store.pedidos,
       agenda: store.agenda,
       notificacoes: store.notificacoes,
+      usuarios: store.usuarios,
       empresa: readEmpresa(),
       refresh,
       salvarCliente: wrap(saveCliente),
@@ -119,6 +125,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       salvarSlotAgenda: wrap(saveAgendaSlot),
       removerSlotAgenda: wrap(removeAgendaSlot),
       salvarEmpresaConfig: wrap(saveEmpresa),
+      criarUsuario: wrap(criarUsuario),
       excluirUsuario: wrap(deleteUsuario),
       marcarNotificacao: wrap(marcarNotificacaoLida),
     }),

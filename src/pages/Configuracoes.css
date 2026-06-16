@@ -68,3 +68,40 @@
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }
+
+.config-panel.usuarios-wide,
+.config-page .config-panel:has(.usuario-form) {
+  max-width: 720px;
+}
+
+.usuario-form {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--dalia-border);
+}
+
+.usuario-form h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.usuario-form select {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--dalia-radius);
+  background: var(--dalia-bg-input);
+  color: var(--dalia-text);
+  box-sizing: border-box;
+}
+
+.usuario-form .form-erro {
+  color: var(--dalia-danger, #c0392b);
+  font-size: 0.875rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.usuarios-list-title {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}

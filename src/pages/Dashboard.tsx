@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
+import { PAPEL_LABEL } from '../components/UsuarioForm';
 import { calcularFaturamentoPedidos } from '../lib/produtoStatus';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { clientes, produtos, pedidos } = useData();
+  const { isAdmin } = useAuth();
+  const { clientes, produtos, pedidos, usuarios } = useData();
 
   const totais = useMemo(() => {
     const vendas = calcularFaturamentoPedidos(pedidos);
@@ -127,6 +130,43 @@ export default function Dashboard() {
               ))}
             </div>
           </article>
+
+          {isAdmin && (
+            <article className="card team-card" aria-label="Equipe de acesso">
+              <div className="team-card-header">
+                <h2>Equipe</h2>
+                <Link to="/configuracoes" className="team-link">
+                  Gerenciar usuários
+                </Link>
+              </div>
+              {usuarios.length === 0 ? (
+                <p className="vazio">Nenhum perfil cadastrado.</p>
+              ) : (
+                <table className="team-table">
+                  <thead>
+                    <tr>
+                      <th>Nome</th>
+                      <th>E-mail</th>
+                      <th>Papel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usuarios.map((u) => (
+                      <tr key={u.id}>
+                        <td>{u.nome}</td>
+                        <td>{u.email}</td>
+                        <td>
+                          <span className={`badge badge-papel badge-${u.papel}`}>
+                            {PAPEL_LABEL[u.papel] ?? u.papel}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </article>
+          )}
         </div>
 
         <aside className="card recent-card" aria-label="Pedidos recentes">

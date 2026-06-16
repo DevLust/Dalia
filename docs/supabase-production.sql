@@ -25,4 +25,26 @@ drop policy if exists "usuarios_update_own" on usuarios;
 create policy "usuarios_update_own" on usuarios
   for update to authenticated using (auth_id = auth.uid());
 
+drop policy if exists "usuarios_insert_admin" on usuarios;
+create policy "usuarios_insert_admin" on usuarios
+  for insert to authenticated
+  with check (
+    exists (
+      select 1 from usuarios admin
+      where admin.auth_id = auth.uid()
+      and admin.papel = 'administrador'
+    )
+  );
+
+drop policy if exists "usuarios_delete_admin" on usuarios;
+create policy "usuarios_delete_admin" on usuarios
+  for delete to authenticated
+  using (
+    exists (
+      select 1 from usuarios admin
+      where admin.auth_id = auth.uid()
+      and admin.papel = 'administrador'
+    )
+  );
+
 -- Repita RLS nas demais tabelas do sistema conforme sua necessidade.

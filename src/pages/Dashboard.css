@@ -217,6 +217,58 @@
   color: var(--dalia-text-muted);
 }
 
+.team-card {
+  margin-top: 1rem;
+}
+
+.team-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.team-card-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.team-link {
+  font-size: 0.85rem;
+  color: var(--dalia-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.team-link:hover {
+  text-decoration: underline;
+}
+
+.team-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.team-table th,
+.team-table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--dalia-border);
+}
+
+.team-table th {
+  color: var(--dalia-text-muted);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.badge-papel {
+  font-size: 0.75rem;
+  text-transform: none;
+}
+
 @media (max-width: 1100px) {
   .dashboard-grid {
     grid-template-columns: 1fr;

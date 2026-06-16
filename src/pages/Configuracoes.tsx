@@ -1,22 +1,26 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
-import { store } from '../store';
-import type { Usuario } from '../types';
+import UsuarioForm, { PAPEL_LABEL } from '../components/UsuarioForm';
 import './Configuracoes.css';
 
 export default function Configuracoes() {
   const { user, isAdmin } = useAuth();
-  const { empresa, salvarEmpresaConfig, excluirUsuario } = useData();
+  const { empresa, usuarios, salvarEmpresaConfig, criarUsuario, excluirUsuario } = useData();
   const [aba, setAba] = useState<'conta' | 'empresa' | 'seguranca' | 'usuarios'>('conta');
   const [nomeEmpresa, setNomeEmpresa] = useState(empresa.nomeEmpresa);
   const [enderecoEmpresa, setEnderecoEmpresa] = useState(empresa.enderecoEmpresa);
-  const [usuarios, setUsuarios] = useState<Usuario[]>(() => [...store.usuarios]);
   const [msg, setMsg] = useState('');
 
   const handleSalvarEmpresa = async () => {
     await salvarEmpresaConfig({ nomeEmpresa, enderecoEmpresa });
     setMsg('Dados da empresa salvos.');
+  };
+
+  const handleCriarUsuario = async (input: Parameters<typeof criarUsuario>[1]) => {
+    if (!user) return;
+    await criarUsuario(user, input);
+    setMsg('Usuário criado com sucesso.');
   };
 
   const handleRemoverUsuario = async (id: string) => {
@@ -26,7 +30,7 @@ export default function Configuracoes() {
     }
     if (confirm('Remover este usuário?')) {
       await excluirUsuario(id);
-      setUsuarios([...store.usuarios]);
+      setMsg('Usuário removido.');
     }
   };
 
@@ -79,7 +83,11 @@ export default function Configuracoes() {
       </div>
 
       <div className="config-panel">
-        {msg && <p className="config-msg" role="status">{msg}</p>}
+        {msg && (
+          <p className="config-msg" role="status">
+            {msg}
+          </p>
+        )}
 
         {aba === 'conta' && (
           <section aria-label="Dados da conta">
@@ -90,7 +98,7 @@ export default function Configuracoes() {
               <strong>E-mail:</strong> {user?.email}
             </p>
             <p>
-              <strong>Papel:</strong> {user?.papel}
+              <strong>Papel:</strong> {user?.papel ? PAPEL_LABEL[user.papel] ?? user.papel : ''}
             </p>
           </section>
         )}
@@ -123,19 +131,20 @@ export default function Configuracoes() {
           <section aria-label="Segurança">
             <p>
               O login em produção usa <strong>Supabase Auth</strong> (senhas criptografadas).
-              Cada usuário deve existir em <em>Authentication → Users</em> e ter um perfil na
-              tabela <code>usuarios</code> com o mesmo e-mail.
+              O administrador pode criar perfis de atendente e gerente na aba Usuários.
             </p>
             <p className="hint">
-              Execute <code>docs/supabase-production.sql</code> no Supabase para vincular perfis e
-              remover a coluna de senha em texto.
+              Execute <code>docs/supabase-production.sql</code> no Supabase para políticas de
+              segurança e vinculação de perfis.
             </p>
           </section>
         )}
 
-        {aba === 'usuarios' && isAdmin && (
+        {aba === 'usuarios' && isAdmin && user && (
           <section aria-label="Gestão de usuários">
-            <p className="hint">Administrador pode remover usuários (RF009).</p>
+            <UsuarioForm onCriar={handleCriarUsuario} />
+
+            <h3 className="usuarios-list-title">Equipe cadastrada</h3>
             <table className="tabela">
               <thead>
                 <tr>
@@ -150,9 +159,9 @@ export default function Configuracoes() {
                   <tr key={u.id}>
                     <td>{u.nome}</td>
                     <td>{u.email}</td>
-                    <td>{u.papel}</td>
+                    <td>{PAPEL_LABEL[u.papel] ?? u.papel}</td>
                     <td>
-                      {u.id !== user?.id && (
+                      {u.id !== user.id && u.papel !== 'administrador' && (
                         <button
                           type="button"
                           className="btn-sm danger"

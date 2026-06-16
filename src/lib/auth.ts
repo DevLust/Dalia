@@ -1,7 +1,15 @@
+import { createClient } from '@supabase/supabase-js';
 import type { User } from '@supabase/supabase-js';
 import type { Papel, Usuario } from '../types';
-import { loginDevLocal } from './devAuth';
+import { loginDevLocal, registerDevUser } from './devAuth';
 import { isSupabaseConfigured, supabase } from './supabase';
+
+export type CriarUsuarioInput = {
+  nome: string;
+  email: string;
+  senha: string;
+  papel: Papel;
+};
 
 type PerfilRow = {
   id: string;
@@ -115,4 +123,78 @@ export function subscribeAuth(onChange: (user: Usuario | null) => void): () => v
 
 export function requiresSupabaseInProduction(): boolean {
   return import.meta.env.PROD && !isSupabaseConfigured;
+}
+
+function ephemeralAuthClient() {
+  const url = import.meta.env.VITE_SUPABASE_URL as string;
+  const key =
+    (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ||
+    (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined);
+  if (!key) throw new Error('Chave Supabase não configurada.');
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
+/** Cria usuário no Supabase Auth + perfil em usuarios (não altera sessão do admin). */
+export async function criarUsuarioAuth(input: CriarUsuarioInput): Promise<Usuario> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+
+  const email = input.email.trim().toLowerCase();
+  const ephemeral = ephemeralAuthClient();
+  const { data, error } = await ephemeral.auth.signUp({
+    email,
+    password: input.senha,
+    options: {
+      data: { nome: input.nome.trim(), papel: input.papel },
+    },
+  });
+
+  if (error) throw new Error(error.message);
+  if (!data.user) throw new Error('Não foi possível criar o usuário no Auth.');
+
+  const row = {
+    id: data.user.id,
+    nome: input.nome.trim(),
+    email,
+    papel: input.papel,
+    auth_id: data.user.id,
+  };
+
+  const { error: dbError } = await supabase.from('usuarios').insert(row);
+  if (dbError) throw new Error(dbError.message);
+
+  return mapPerfil(row as PerfilRow);
+}
+
+export async function criarUsuario(
+  actor: Usuario,
+  input: CriarUsuarioInput
+): Promise<Usuario> {
+  if (actor.papel !== 'administrador') {
+    throw new Error('Apenas administradores podem criar usuários.');
+  }
+  if (input.papel === 'administrador') {
+    throw new Error('Use o Supabase para criar outro administrador.');
+  }
+  if (input.senha.length < 6) {
+    throw new Error('A senha deve ter no mínimo 6 caracteres.');
+  }
+  if (!input.nome.trim() || !input.email.trim()) {
+    throw new Error('Nome e e-mail são obrigatórios.');
+  }
+
+  if (isSupabaseConfigured && supabase) {
+    return criarUsuarioAuth(input);
+  }
+
+  if (import.meta.env.PROD) {
+    throw new Error('Supabase é obrigatório em produção.');
+  }
+
+  return registerDevUser(input.nome, input.email, input.senha, input.papel);
 }
