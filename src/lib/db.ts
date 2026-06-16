@@ -322,7 +322,6 @@ function readEmpresaLocal(): EmpresaConfig {
     const s = localStorage.getItem(LS_EMPRESA);
     if (s) return JSON.parse(s) as EmpresaConfig;
   } catch {
-    void 0;
   }
   return { ...EMPRESA_DEFAULT };
 }

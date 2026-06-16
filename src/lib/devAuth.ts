@@ -3,7 +3,6 @@ import { generateId } from '../store';
 
 const LS_DEV_EXTRA = 'dalia_dev_users_extra';
 
-/** Apenas desenvolvimento local sem Supabase — nunca usado em builds de produção. */
 const DEV_USERS: Array<Usuario & { senha: string }> = [
   {
     id: '1',

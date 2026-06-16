@@ -5,7 +5,6 @@ export interface Usuario {
   nome: string;
   email: string;
   papel: Papel;
-  /** UUID do usuário no Supabase Auth (produção). */
   authId?: string;
 }
 
@@ -43,9 +42,7 @@ export interface Produto {
   tipo: string;
   descricao: string;
   dataCadastro: string;
-  /** @deprecated Use imagens. Mantido para compatibilidade. */
   imagem?: string;
-  /** Fotos anexadas no cadastro (principal = índice 0). */
   imagens?: string[];
   status: StatusProduto;
   quantidade: number;

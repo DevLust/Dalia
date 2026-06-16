@@ -1,12 +1,3 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
 node_modules
 dist
 dist-ssr
@@ -14,14 +5,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
-
-# Logo fonte na raiz (versão servida está em public/)
 /Logo.jpeg
-
-# SQL do banco (manter só local / no painel Supabase)
 supabase/
-
-# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -31,3 +16,8 @@ supabase/
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.cursor
+logs
+*.log
+npm-debug.log*

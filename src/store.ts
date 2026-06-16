@@ -23,7 +23,6 @@ function load<T>(key: string, defaultVal: T): T {
     const s = localStorage.getItem(key);
     if (s) return JSON.parse(s) as T;
   } catch {
-    void 0;
   }
   return defaultVal;
 }

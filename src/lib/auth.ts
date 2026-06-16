@@ -34,10 +34,7 @@ function mapPerfil(row: PerfilRow): Usuario {
 
 async function vincularAuthId(perfilId: string, authId: string): Promise<void> {
   if (!supabase) return;
-  const { error } = await supabase.from('usuarios').update({ auth_id: authId }).eq('id', perfilId);
-  if (error && !/auth_id|column/i.test(error.message)) {
-    console.warn('Não foi possível vincular auth_id ao perfil:', error.message);
-  }
+  await supabase.from('usuarios').update({ auth_id: authId }).eq('id', perfilId);
 }
 
 async function fetchPerfil(authUser: User): Promise<Usuario | null> {
@@ -96,24 +93,6 @@ export async function logoutUsuario(): Promise<void> {
   if (supabase) await supabase.auth.signOut();
 }
 
-export async function restoreUsuarioFromSession(): Promise<Usuario | null> {
-  if (!supabase) return null;
-  try {
-    const { data: { session } } = await Promise.race([
-      supabase.auth.getSession(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('getSession timeout')), 8000)
-      ),
-    ]);
-    if (!session?.user) return null;
-    return fetchPerfil(session.user);
-  } catch (e) {
-    console.warn('Não foi possível restaurar a sessão:', e);
-    return null;
-  }
-}
-
-/** Evita deadlock: não usar await direto dentro de onAuthStateChange. */
 export function subscribeAuth(
   onChange: (user: Usuario | null) => void,
   onReady?: () => void
@@ -135,8 +114,7 @@ export function subscribeAuth(
           }
           const perfil = await fetchPerfil(session.user);
           onChange(perfil);
-        } catch (e) {
-          console.warn('Erro ao carregar perfil:', e);
+        } catch {
           onChange(null);
         } finally {
           if (event === 'INITIAL_SESSION') onReady?.();
@@ -167,7 +145,6 @@ function ephemeralAuthClient() {
   });
 }
 
-/** Cria usuário via API serverless (produção) ou signUp efêmero (dev). */
 export async function criarUsuarioAuth(input: CriarUsuarioInput): Promise<Usuario> {
   if (!supabase) throw new Error('Supabase não configurado.');
 

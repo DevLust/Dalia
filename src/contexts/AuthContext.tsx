@@ -51,7 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Nunca bloquear a tela de login se o Auth travar
     const safetyTimer = window.setTimeout(finish, 8000);
 
     const unsubscribe = subscribeAuth(
