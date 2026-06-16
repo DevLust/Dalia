@@ -122,7 +122,13 @@ export default function Configuracoes() {
         {aba === 'seguranca' && (
           <section aria-label="Segurança">
             <p>
-              Em produção, substitua senhas em texto por autenticação segura do Supabase Auth.
+              O login em produção usa <strong>Supabase Auth</strong> (senhas criptografadas).
+              Cada usuário deve existir em <em>Authentication → Users</em> e ter um perfil na
+              tabela <code>usuarios</code> com o mesmo e-mail.
+            </p>
+            <p className="hint">
+              Execute <code>docs/supabase-production.sql</code> no Supabase para vincular perfis e
+              remover a coluna de senha em texto.
             </p>
           </section>
         )}

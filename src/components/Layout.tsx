@@ -48,8 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const pageName = getPageName(location.pathname);
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    void logout().then(() => navigate('/login'));
   };
 
   const iniciais = user?.nome

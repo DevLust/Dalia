@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { isDevLoginHintVisible } from '../lib/devAuth';
+import { requiresSupabaseInProduction } from '../lib/auth';
 import './Login.css';
 
 export default function Login() {
@@ -10,10 +12,15 @@ export default function Login() {
   const [erro, setErro] = useState('');
   const { login, authLoading } = useAuth();
   const navigate = useNavigate();
+  const configError = requiresSupabaseInProduction();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setErro('');
+    if (configError) {
+      setErro('Sistema não configurado para produção. Defina as variáveis do Supabase na Vercel.');
+      return;
+    }
     if (!email.trim() || !senha) {
       setErro('Preencha e-mail e senha.');
       return;
@@ -21,7 +28,11 @@ export default function Login() {
     try {
       const ok = await login(email.trim(), senha);
       if (ok) navigate('/', { replace: true });
-      else setErro('E-mail ou senha incorretos. Tente novamente.');
+      else {
+        setErro(
+          'E-mail ou senha incorretos, ou perfil não encontrado na tabela de usuários.'
+        );
+      }
     } catch {
       setErro('Não foi possível conectar ao servidor. Verifique a configuração do Supabase.');
     }
@@ -32,11 +43,7 @@ export default function Login() {
       <div className="login-shell">
         <aside className="login-visual" aria-hidden="true">
           <div className="login-visual-inner">
-            <img
-              src="/logo.jpeg"
-              alt=""
-              className="login-logo-hero"
-            />
+            <img src="/logo.jpeg" alt="" className="login-logo-hero" />
             <h1 className="login-brand-title">Dália</h1>
             <p className="login-brand-sub">ateliê de noivas</p>
             <p className="login-tagline">
@@ -46,15 +53,18 @@ export default function Login() {
         </aside>
 
         <div className="login-card">
-          <img
-            src="/logo.jpeg"
-            alt="Dália Ateliê de Noivas"
-            className="login-logo-mobile"
-          />
+          <img src="/logo.jpeg" alt="Dália Ateliê de Noivas" className="login-logo-mobile" />
           <h2 id="login-title" className="login-form-title">
             Bem-vinda de volta
           </h2>
           <p className="login-sub">Entre com suas credenciais para acessar o sistema</p>
+
+          {configError && (
+            <p className="login-erro" role="alert">
+              Ambiente de produção sem Supabase. Configure VITE_SUPABASE_URL e
+              VITE_SUPABASE_ANON_KEY na Vercel e faça redeploy.
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} noValidate aria-labelledby="login-title">
             <label htmlFor="login-email">E-mail</label>
@@ -68,6 +78,7 @@ export default function Login() {
               aria-required="true"
               aria-invalid={!!erro}
               aria-describedby={erro ? 'login-erro' : undefined}
+              disabled={configError}
             />
 
             <label htmlFor="login-senha">Senha</label>
@@ -79,20 +90,25 @@ export default function Login() {
               autoComplete="current-password"
               required
               aria-required="true"
+              disabled={configError}
             />
 
-            {erro && (
+            {erro && !configError && (
               <p id="login-erro" className="login-erro" role="alert">
                 {erro}
               </p>
             )}
 
-            <button type="submit" className="btn-primary" disabled={authLoading}>
+            <button type="submit" className="btn-primary" disabled={authLoading || configError}>
               {authLoading ? 'Entrando…' : 'Entrar'}
             </button>
           </form>
 
-          <p className="login-hint">Demonstração: admin@dalia.com.br / admin123</p>
+          {isDevLoginHintVisible() && !configError && (
+            <p className="login-hint">
+              Desenvolvimento local (sem Supabase): admin@dalia.com.br / admin123
+            </p>
+          )}
         </div>
       </div>
     </div>

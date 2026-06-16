@@ -6,6 +6,8 @@ import type {
   AgendaSlot,
   Notificacao,
 } from './types';
+import { devUsersForStore } from './lib/devAuth';
+import { isSupabaseConfigured } from './lib/supabase';
 
 const STORAGE_KEYS = {
   usuarios: 'dalia_usuarios',
@@ -30,33 +32,14 @@ function save<T>(key: string, value: T): void {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-const defaultUsuarios: Usuario[] = [
-  {
-    id: '1',
-    nome: 'Administrador',
-    email: 'admin@dalia.com.br',
-    senha: 'admin123',
-    papel: 'administrador',
-  },
-  {
-    id: '2',
-    nome: 'Gerente',
-    email: 'gerente@dalia.com.br',
-    senha: 'gerente123',
-    papel: 'gerente',
-  },
-  {
-    id: '3',
-    nome: 'Atendente',
-    email: 'atendente@dalia.com.br',
-    senha: 'atendente123',
-    papel: 'atendente',
-  },
-];
+function defaultUsuarios(): Usuario[] {
+  if (import.meta.env.PROD || isSupabaseConfigured) return [];
+  return devUsersForStore();
+}
 
 export const store = {
   get usuarios(): Usuario[] {
-    return load(STORAGE_KEYS.usuarios, defaultUsuarios);
+    return load(STORAGE_KEYS.usuarios, defaultUsuarios());
   },
   set usuarios(v: Usuario[]) {
     save(STORAGE_KEYS.usuarios, v);

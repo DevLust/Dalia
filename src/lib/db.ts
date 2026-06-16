@@ -71,8 +71,8 @@ type UsuarioRow = {
   id: string;
   nome: string;
   email: string;
-  senha: string;
   papel: string;
+  auth_id?: string | null;
 };
 
 type NotificacaoRow = {
@@ -220,8 +220,8 @@ function fromUsuario(r: UsuarioRow): Usuario {
     id: r.id,
     nome: r.nome,
     email: r.email,
-    senha: r.senha,
     papel: r.papel as Usuario['papel'],
+    authId: r.auth_id ?? undefined,
   };
 }
 
@@ -262,7 +262,7 @@ function hydrateStore(data: {
 export async function loadAll(): Promise<void> {
   if (isSupabaseConfigured && supabase) {
     const [usuRes, cliRes, proRes, pedRes, agRes, notRes, empRes] = await Promise.all([
-      supabase.from('usuarios').select('*'),
+      supabase.from('usuarios').select('id, nome, email, papel, auth_id'),
       supabase.from('clientes').select('*').order('created_at', { ascending: false }),
       supabase.from('produtos').select('*').order('data_cadastro', { ascending: false }),
       supabase.from('pedidos').select('*').order('created_at', { ascending: false }),
@@ -514,26 +514,7 @@ export async function saveEmpresa(empresa: EmpresaConfig): Promise<void> {
   }
 }
 
-export async function loginUsuario(
-  email: string,
-  senha: string
-): Promise<Usuario | null> {
-  if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('email', email.trim())
-      .eq('senha', senha)
-      .maybeSingle();
-    if (error) throw error;
-    return data ? fromUsuario(data as UsuarioRow) : null;
-  }
-  return (
-    store.usuarios.find(
-      (x) => x.email.toLowerCase() === email.toLowerCase() && x.senha === senha
-    ) ?? null
-  );
-}
+export { loginUsuario, logoutUsuario } from './auth';
 
 export async function deleteUsuario(id: string): Promise<void> {
   store.usuarios = store.usuarios.filter((u) => u.id !== id);

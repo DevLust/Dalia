@@ -2,67 +2,61 @@
 
 Sistema de gestão para ateliê de noivas — clientes, acervo, pedidos, agenda, costureiras e relatórios.
 
-**Stack:** React 19 · Vite 8 · TypeScript · Supabase (opcional) · deploy na Vercel
+**Stack:** React 19 · Vite 8 · TypeScript · Supabase · Vercel
 
 Repositório: [github.com/DevLust/Dalia](https://github.com/DevLust/Dalia)
 
 ## Requisitos
 
 - Node.js 20+
-- Conta [Supabase](https://supabase.com) (recomendado para produção)
+- Projeto [Supabase](https://supabase.com) (obrigatório em produção)
 
-## Instalação
+## Instalação local
 
 ```bash
 npm install
 cp .env.example .env
 # Edite .env com URL e chave anon do Supabase
-```
-
-Configure as tabelas e políticas RLS diretamente no painel do Supabase (o script SQL não fica neste repositório por segurança).
-
-Para **várias fotos por produto**, execute uma vez o arquivo `docs/supabase-add-imagens.sql` no SQL Editor do Supabase.
-
-## Desenvolvimento
-
-```bash
 npm run dev
 ```
 
-Acesse `http://localhost:5173`.
+Sem `.env`, o app roda em modo local com `localStorage` e login de desenvolvimento (somente `npm run dev`).
 
-Use as credenciais configuradas no seu projeto Supabase.
+## Produção — checklist
 
-Sem `.env` configurado, o app usa `localStorage` como fallback local.
+### 1. Supabase
 
-## Build e deploy
+1. Crie o projeto e as tabelas (schema privado do seu ambiente).
+2. Execute no SQL Editor:
+   - `docs/supabase-add-imagens.sql` — galeria de fotos
+   - `docs/supabase-production.sql` — Auth + remoção de senha em texto
+3. Em **Authentication → Users**, crie cada usuário (e-mail + senha forte).
+4. Garanta um registro em `usuarios` com o **mesmo e-mail** e papel (`administrador`, `gerente`, etc.).
 
-```bash
-npm run build
-```
+### 2. Vercel
 
-Saída em `dist/`.
-
-### Vercel + Supabase (obrigatório para salvar no banco)
-
-No [painel da Vercel](https://vercel.com) → seu projeto → **Settings** → **Environment Variables**, adicione:
+Variáveis em **Settings → Environment Variables** (Production, Preview, Development):
 
 | Nome | Valor |
 |------|--------|
-| `VITE_SUPABASE_URL` | URL do projeto (Supabase → Settings → API) |
-| `VITE_SUPABASE_ANON_KEY` | Chave **anon** / **public** (mesma tela) |
+| `VITE_SUPABASE_URL` | URL do projeto |
+| `VITE_SUPABASE_ANON_KEY` | Chave **anon** pública |
 
-Marque **Production**, **Preview** e **Development**.
+Depois: **Deployments → Redeploy** (o Vite embute as variáveis no build).
 
-Depois vá em **Deployments** → **⋯** no último deploy → **Redeploy** (obrigatório: o Vite embute essas variáveis na hora do build).
+### 3. Build
 
-Se aparecer o aviso laranja *“Modo offline”* no site, as variáveis ainda não estão no deploy atual.
+```bash
+npm run build
+npm run preview   # testar build localmente
+```
 
 ## Segurança
 
-- `.env` e chaves **nunca** devem ir para o Git
-- Use apenas a chave **anon** (pública) no front-end
-- Revise as políticas RLS no Supabase antes de produção
+- Login em produção via **Supabase Auth** (sem senha na tabela `usuarios`).
+- `.env` nunca vai para o Git.
+- Use apenas a chave **anon** no front-end.
+- Revise políticas **RLS** no Supabase.
 
 ## Licença
 

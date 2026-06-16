@@ -4,8 +4,9 @@ export interface Usuario {
   id: string;
   nome: string;
   email: string;
-  senha: string;
   papel: Papel;
+  /** UUID do usuário no Supabase Auth (produção). */
+  authId?: string;
 }
 
 export type StatusProduto =

@@ -23,11 +23,19 @@ function LoadingScreen({ msg }: { msg: string }) {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, authReady } = useAuth();
   const { ready, loading } = useData();
+  if (!authReady) return <LoadingScreen msg="Verificando sessão…" />;
   if (!user) return <Navigate to="/login" replace />;
   if (!ready || loading) return <LoadingScreen msg="Carregando dados…" />;
   return <Layout>{children}</Layout>;
+}
+
+function LoginRoute() {
+  const { user, authReady } = useAuth();
+  if (!authReady) return <LoadingScreen msg="Verificando sessão…" />;
+  if (user) return <Navigate to="/" replace />;
+  return <Login />;
 }
 
 export default function App() {
@@ -36,7 +44,7 @@ export default function App() {
       <DataProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<LoginRoute />} />
             <Route
               path="/"
               element={
