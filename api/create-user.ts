@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
 
 type ReqBody = {
   nome?: string;
@@ -6,6 +6,89 @@ type ReqBody = {
   senha?: string;
   papel?: string;
 };
+
+type UsuarioRow = {
+  id: string;
+  nome: string;
+  email: string;
+  papel: string;
+  auth_id: string;
+};
+
+function traduzirErroAuth(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes('already been registered') || m.includes('already exists')) {
+    return 'Este e-mail já existe no login (Supabase Auth). O sistema tentará vincular o perfil automaticamente.';
+  }
+  if (m.includes('invalid email')) return 'E-mail inválido.';
+  if (m.includes('password')) return 'Senha inválida. Use no mínimo 6 caracteres.';
+  return message;
+}
+
+async function buscarAuthUserPorEmail(
+  adminClient: SupabaseClient,
+  email: string
+): Promise<User | null> {
+  let page = 1;
+  const perPage = 200;
+  const alvo = email.toLowerCase();
+
+  while (page <= 10) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const hit = data.users.find((u) => u.email?.toLowerCase() === alvo);
+    if (hit) return hit;
+    if (data.users.length < perPage) break;
+    page += 1;
+  }
+  return null;
+}
+
+async function vincularPerfilExistente(
+  adminClient: SupabaseClient,
+  authUser: User,
+  nome: string,
+  email: string,
+  senha: string,
+  papel: string
+): Promise<UsuarioRow | { error: string; status: number }> {
+  const { data: perfilExistente } = await adminClient
+    .from('usuarios')
+    .select('id, nome, email, papel, auth_id')
+    .ilike('email', email)
+    .maybeSingle();
+
+  if (perfilExistente) {
+    return {
+      error: 'Este e-mail já possui perfil cadastrado na equipe.',
+      status: 400,
+    };
+  }
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(authUser.id, {
+    password: senha,
+    email_confirm: true,
+    user_metadata: { nome, papel },
+  });
+  if (updateError) {
+    return { error: traduzirErroAuth(updateError.message), status: 400 };
+  }
+
+  const row: UsuarioRow = {
+    id: authUser.id,
+    nome,
+    email,
+    papel,
+    auth_id: authUser.id,
+  };
+
+  const { error: dbError } = await adminClient.from('usuarios').insert(row);
+  if (dbError) {
+    return { error: dbError.message, status: 400 };
+  }
+
+  return row;
+}
 
 export default async function handler(
   req: { method?: string; headers: Record<string, string | string[] | undefined>; body?: ReqBody },
@@ -95,11 +178,45 @@ export default async function handler(
   });
 
   if (createError || !created.user) {
-    const msg = createError?.message ?? 'Não foi possível criar o usuário no Auth.';
+    const dup =
+      createError &&
+      /already been registered|already exists|duplicate/i.test(createError.message);
+
+    if (dup) {
+      try {
+        const authUser = await buscarAuthUserPorEmail(adminClient, email);
+        if (!authUser) {
+          return res.status(400).json({
+            error:
+              'E-mail já usado no login, mas não foi encontrado no Auth. Remova em Supabase → Authentication → Users.',
+          });
+        }
+
+        const vinculo = await vincularPerfilExistente(
+          adminClient,
+          authUser,
+          nome,
+          email,
+          senha,
+          papel
+        );
+
+        if ('error' in vinculo) {
+          return res.status(vinculo.status).json({ error: vinculo.error });
+        }
+
+        return res.status(200).json({ usuario: vinculo });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Erro ao vincular usuário existente.';
+        return res.status(400).json({ error: msg });
+      }
+    }
+
+    const msg = traduzirErroAuth(createError?.message ?? 'Não foi possível criar o usuário no Auth.');
     return res.status(400).json({ error: msg });
   }
 
-  const row = {
+  const row: UsuarioRow = {
     id: created.user.id,
     nome,
     email,

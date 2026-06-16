@@ -209,7 +209,13 @@ async function criarUsuarioViaApi(input: CriarUsuarioInput): Promise<Usuario> {
   }
 
   if (!res.ok) {
-    throw new Error(body.error || `Erro ao criar usuário (${res.status}).`);
+    const msg = body.error || `Erro ao criar usuário (${res.status}).`;
+    if (/already been registered|already exists/i.test(msg)) {
+      throw new Error(
+        'Este e-mail já existe no login (Supabase Auth), mas pode não aparecer na tabela usuarios. Tente novamente ou remova em Authentication → Users.'
+      );
+    }
+    throw new Error(msg);
   }
   if (!body.usuario) {
     throw new Error('Resposta inválida ao criar usuário.');
