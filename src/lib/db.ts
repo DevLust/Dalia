@@ -157,6 +157,25 @@ function toProdutoRow(p: Produto): ProdutoRow {
   };
 }
 
+function erroColunaImagens(msg: string): boolean {
+  return /imagens|schema cache/i.test(msg);
+}
+
+async function upsertProdutoSupabase(produto: Produto): Promise<void> {
+  const row = toProdutoRow(produto);
+  try {
+    await upsertSupabase('produtos', row);
+  } catch (e) {
+    const msg = mensagemErro(e);
+    if (erroColunaImagens(msg)) {
+      const { imagens: _omit, ...semImagens } = row;
+      await upsertSupabase('produtos', semImagens as ProdutoRow);
+      return;
+    }
+    throw new Error(msg);
+  }
+}
+
 function fromPedido(r: PedidoRow): Pedido {
   return {
     id: r.id,
@@ -373,18 +392,7 @@ export async function saveProduto(produto: Produto): Promise<void> {
   store.produtos = lista;
 
   if (isSupabaseConfigured) {
-    const row = toProdutoRow(normalizado);
-    try {
-      await upsertSupabase('produtos', row);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (row.imagens && /imagens|column/i.test(msg)) {
-        const { imagens: _omit, ...semImagens } = row;
-        await upsertSupabase('produtos', semImagens as ProdutoRow);
-      } else {
-        throw e;
-      }
-    }
+    await upsertProdutoSupabase(normalizado);
   }
 }
 
@@ -493,18 +501,7 @@ export async function savePedido(pedido: Pedido, anterior?: Pedido): Promise<voi
       }
     }
     for (const p of produtosAtualizados) {
-      try {
-        await upsertSupabase('produtos', toProdutoRow(p));
-      } catch (e) {
-        const rowProd = toProdutoRow(p);
-        const msg = mensagemErro(e);
-        if (rowProd.imagens && /imagens|column/i.test(msg)) {
-          const { imagens: _omit, ...semImagens } = rowProd;
-          await upsertSupabase('produtos', semImagens as ProdutoRow);
-        } else {
-          throw new Error(msg);
-        }
-      }
+      await upsertProdutoSupabase(p);
     }
   }
 }
@@ -522,7 +519,7 @@ export async function deletePedido(id: string): Promise<void> {
     }
     store.produtos = produtos;
     if (isSupabaseConfigured && supabase) {
-      for (const p of produtos) await upsertSupabase('produtos', toProdutoRow(p));
+      for (const p of produtos) await upsertProdutoSupabase(p);
     }
   }
   store.pedidos = store.pedidos.filter((p) => p.id !== id);
