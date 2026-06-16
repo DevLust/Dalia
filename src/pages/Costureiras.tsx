@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../contexts/DataContext';
+import { pedidoNaCostureira } from '../lib/produtoStatus';
 import type { Pedido } from '../types';
 import { formatDate } from '../lib/dates';
 import './Costureiras.css';
@@ -10,12 +11,7 @@ export default function Costureiras() {
 
   const lista = useMemo(() => {
     return [...pedidos]
-      .filter(
-        (p) =>
-          p.status === 'em_atendimento' ||
-          p.status === 'aguardando_retirada' ||
-          (p.prioridadeCostureira != null && p.itens.length > 0)
-      )
+      .filter((p) => pedidoNaCostureira(p))
       .filter((p) => {
         if (filtroUrgencia === 'urgente') return (p.prioridadeCostureira ?? 999) <= 1;
         if (filtroUrgencia === 'normal') return (p.prioridadeCostureira ?? 999) > 1;

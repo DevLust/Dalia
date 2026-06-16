@@ -1,6 +1,7 @@
 alter table usuarios add column if not exists auth_id uuid unique references auth.users(id);
 alter table usuarios drop column if exists senha;
 alter table produtos add column if not exists imagens jsonb default '[]'::jsonb;
+alter table pedidos add column if not exists prioridade_costureira integer;
 
 alter table usuarios enable row level security;
 
@@ -125,3 +126,28 @@ begin
     values (v_user_id, 'Administrador', v_email, 'administrador', v_user_id);
   end if;
 end $$;
+
+alter table pedidos enable row level security;
+alter table produtos enable row level security;
+alter table clientes enable row level security;
+alter table agenda_slots enable row level security;
+alter table notificacoes enable row level security;
+alter table empresa_config enable row level security;
+
+drop policy if exists "pedidos_auth" on pedidos;
+create policy "pedidos_auth" on pedidos for all to authenticated using (true) with check (true);
+
+drop policy if exists "produtos_auth" on produtos;
+create policy "produtos_auth" on produtos for all to authenticated using (true) with check (true);
+
+drop policy if exists "clientes_auth" on clientes;
+create policy "clientes_auth" on clientes for all to authenticated using (true) with check (true);
+
+drop policy if exists "agenda_slots_auth" on agenda_slots;
+create policy "agenda_slots_auth" on agenda_slots for all to authenticated using (true) with check (true);
+
+drop policy if exists "notificacoes_auth" on notificacoes;
+create policy "notificacoes_auth" on notificacoes for all to authenticated using (true) with check (true);
+
+drop policy if exists "empresa_config_auth" on empresa_config;
+create policy "empresa_config_auth" on empresa_config for all to authenticated using (true) with check (true);

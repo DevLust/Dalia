@@ -4,7 +4,8 @@ import { generateId } from '../store';
 import { todayIso } from '../lib/dates';
 import DateInput from './DateInput';
 import { useData } from '../contexts/DataContext';
-import { podeAlugar } from '../lib/produtoStatus';
+import { podeAlugar, pedidoFinalizado } from '../lib/produtoStatus';
+import { mensagemErro } from '../lib/validators';
 import type {
   Pedido,
   ItemPedido,
@@ -164,7 +165,11 @@ export default function PedidoForm({
       valorPago: valorPagoCalculado(),
       pago,
       notas: notas.trim() || undefined,
-      prioridadeCostureira: prioridadeUrgente ? 1 : 2,
+      prioridadeCostureira: pedidoFinalizado(status)
+        ? undefined
+        : prioridadeUrgente
+          ? 1
+          : 2,
       createdAt: pedido?.createdAt ?? new Date().toISOString(),
     };
 
@@ -173,7 +178,7 @@ export default function PedidoForm({
       await salvarPedido(payload, pedido);
       onSalvo();
     } catch (err) {
-      setErro(err instanceof Error ? err.message : 'Não foi possível salvar o pedido.');
+      setErro(mensagemErro(err));
     } finally {
       setSalvando(false);
     }
@@ -254,7 +259,11 @@ export default function PedidoForm({
           <select
             id="pedido-status"
             value={status}
-            onChange={(e) => setStatus(e.target.value as StatusPedido)}
+            onChange={(e) => {
+              const novo = e.target.value as StatusPedido;
+              setStatus(novo);
+              if (pedidoFinalizado(novo)) setPrioridadeUrgente(false);
+            }}
           >
             {STATUS_OPCOES.map((s) => (
               <option key={s} value={s}>
@@ -281,6 +290,7 @@ export default function PedidoForm({
           />
           <label htmlFor="pedido-pago">Pagamento realizado (PIX, cartão ou à vista)</label>
         </div>
+        {!pedidoFinalizado(status) && (
         <div className="form-row checkbox-row">
           <input
             id="pedido-urgente"
@@ -290,6 +300,7 @@ export default function PedidoForm({
           />
           <label htmlFor="pedido-urgente">Prioridade urgente (costureira)</label>
         </div>
+        )}
 
         <fieldset className="itens-fieldset">
           <legend>Produtos do pedido</legend>

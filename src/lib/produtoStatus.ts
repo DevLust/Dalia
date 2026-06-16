@@ -1,5 +1,21 @@
 import type { Pedido, Produto, StatusPedido, StatusProduto } from '../types';
 
+const STATUS_FINAIS: StatusPedido[] = ['concluido', 'devolvido', 'cancelado'];
+
+export function pedidoFinalizado(status: StatusPedido): boolean {
+  return STATUS_FINAIS.includes(status);
+}
+
+export function pedidoNaCostureira(p: Pedido): boolean {
+  if (pedidoFinalizado(p.status) || p.status === 'emprestado') return false;
+  if (p.itens.length === 0) return false;
+  return (
+    p.status === 'em_atendimento' ||
+    p.status === 'aguardando_retirada' ||
+    p.status === 'agendado'
+  );
+}
+
 export function statusEfetivo(produto: Produto): StatusProduto {
   if (produto.quantidade <= 0) return 'fora_estoque';
   return produto.status;

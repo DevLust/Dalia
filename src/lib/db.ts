@@ -8,6 +8,8 @@ import type {
   EmpresaConfig,
   ItemPedido,
 } from '../types';
+import { pedidoFinalizado } from './produtoStatus';
+import { mensagemErro } from './validators';
 import { isSupabaseConfigured, supabase } from './supabase';
 import {
   criarUsuario as criarUsuarioAuth,
@@ -391,7 +393,28 @@ export async function deleteProduto(id: string): Promise<void> {
   if (isSupabaseConfigured) await deleteSupabase('produtos', id);
 }
 
+function itensIguais(a: ItemPedido[], b: ItemPedido[]): boolean {
+  if (a.length !== b.length) return false;
+  const sort = (items: ItemPedido[]) =>
+    [...items].sort((x, y) => x.produtoId.localeCompare(y.produtoId));
+  const sa = sort(a);
+  const sb = sort(b);
+  return sa.every(
+    (item, i) => item.produtoId === sb[i].produtoId && item.quantidade === sb[i].quantidade
+  );
+}
+
+function normalizarPedido(pedido: Pedido): Pedido {
+  if (pedidoFinalizado(pedido.status) || pedido.status === 'emprestado') {
+    return { ...pedido, prioridadeCostureira: undefined };
+  }
+  return pedido;
+}
+
 function validarEstoquePedido(pedido: Pedido, anterior?: Pedido): void {
+  if (anterior && itensIguais(pedido.itens, anterior.itens)) {
+    return;
+  }
   const devolver = anterior?.itens ?? [];
   const estoque = new Map<string, number>();
   store.produtos.forEach((p) => {
@@ -445,20 +468,43 @@ function aplicarEstoquePedido(pedido: Pedido, anterior?: Pedido): Produto[] {
 }
 
 export async function savePedido(pedido: Pedido, anterior?: Pedido): Promise<void> {
-  validarEstoquePedido(pedido, anterior);
-  const produtosAtualizados = aplicarEstoquePedido(pedido, anterior);
+  const normalizado = normalizarPedido(pedido);
+  validarEstoquePedido(normalizado, anterior);
+  const produtosAtualizados = aplicarEstoquePedido(normalizado, anterior);
   store.produtos = produtosAtualizados;
 
   const lista = [...store.pedidos];
-  const idx = lista.findIndex((p) => p.id === pedido.id);
-  if (idx >= 0) lista[idx] = pedido;
-  else lista.push(pedido);
+  const idx = lista.findIndex((p) => p.id === normalizado.id);
+  if (idx >= 0) lista[idx] = normalizado;
+  else lista.push(normalizado);
   store.pedidos = lista;
 
   if (isSupabaseConfigured && supabase) {
-    await upsertSupabase('pedidos', toPedidoRow(pedido));
+    const row = toPedidoRow(normalizado);
+    try {
+      await upsertSupabase('pedidos', row);
+    } catch (e) {
+      const msg = mensagemErro(e);
+      if (row.prioridade_costureira != null && /prioridade_costureira|column/i.test(msg)) {
+        const { prioridade_costureira: _omit, ...semPrioridade } = row;
+        await upsertSupabase('pedidos', semPrioridade as PedidoRow);
+      } else {
+        throw new Error(msg);
+      }
+    }
     for (const p of produtosAtualizados) {
-      await upsertSupabase('produtos', toProdutoRow(p));
+      try {
+        await upsertSupabase('produtos', toProdutoRow(p));
+      } catch (e) {
+        const rowProd = toProdutoRow(p);
+        const msg = mensagemErro(e);
+        if (rowProd.imagens && /imagens|column/i.test(msg)) {
+          const { imagens: _omit, ...semImagens } = rowProd;
+          await upsertSupabase('produtos', semImagens as ProdutoRow);
+        } else {
+          throw new Error(msg);
+        }
+      }
     }
   }
 }

@@ -34,6 +34,7 @@ import {
 } from '../lib/db';
 import type { CriarUsuarioInput } from '../lib/db';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { mensagemErro } from '../lib/validators';
 
 interface DataContextType {
   ready: boolean;
@@ -96,7 +97,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         await fn(...args);
         setTick((t) => t + 1);
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Erro ao salvar.';
+        const msg = mensagemErro(e);
         setError(msg);
         throw e;
       }

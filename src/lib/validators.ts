@@ -7,6 +7,15 @@ export function validarEmail(email: string): boolean {
   return EMAIL_RE.test(t);
 }
 
+export function mensagemErro(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'object' && e !== null && 'message' in e) {
+    const msg = (e as { message: unknown }).message;
+    if (typeof msg === 'string' && msg) return msg;
+  }
+  return 'Erro desconhecido.';
+}
+
 export function validarCPF(cpf: string): boolean {
   const d = cpf.replace(/\D/g, '');
   if (d.length !== 11) return false;
