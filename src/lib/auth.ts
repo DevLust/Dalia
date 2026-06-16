@@ -97,25 +97,51 @@ export async function logoutUsuario(): Promise<void> {
 
 export async function restoreUsuarioFromSession(): Promise<Usuario | null> {
   if (!supabase) return null;
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user) return null;
-  return fetchPerfil(session.user);
+  try {
+    const { data: { session } } = await Promise.race([
+      supabase.auth.getSession(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('getSession timeout')), 8000)
+      ),
+    ]);
+    if (!session?.user) return null;
+    return fetchPerfil(session.user);
+  } catch (e) {
+    console.warn('Não foi possível restaurar a sessão:', e);
+    return null;
+  }
 }
 
-export function subscribeAuth(onChange: (user: Usuario | null) => void): () => void {
-  if (!supabase) return () => undefined;
+/** Evita deadlock: não usar await direto dentro de onAuthStateChange. */
+export function subscribeAuth(
+  onChange: (user: Usuario | null) => void,
+  onReady?: () => void
+): () => void {
+  if (!supabase) {
+    onReady?.();
+    return () => undefined;
+  }
 
   const {
     data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (!session?.user) {
-      onChange(null);
-      return;
-    }
-    const perfil = await fetchPerfil(session.user);
-    onChange(perfil);
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    setTimeout(() => {
+      void (async () => {
+        try {
+          if (!session?.user) {
+            onChange(null);
+            return;
+          }
+          const perfil = await fetchPerfil(session.user);
+          onChange(perfil);
+        } catch (e) {
+          console.warn('Erro ao carregar perfil:', e);
+          onChange(null);
+        } finally {
+          if (event === 'INITIAL_SESSION') onReady?.();
+        }
+      })();
+    }, 0);
   });
 
   return () => subscription.unsubscribe();
@@ -140,8 +166,58 @@ function ephemeralAuthClient() {
   });
 }
 
-/** Cria usuário no Supabase Auth + perfil em usuarios (não altera sessão do admin). */
+/** Cria usuário via API serverless (produção) ou signUp efêmero (dev). */
 export async function criarUsuarioAuth(input: CriarUsuarioInput): Promise<Usuario> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+
+  if (import.meta.env.PROD) {
+    return criarUsuarioViaApi(input);
+  }
+
+  try {
+    return await criarUsuarioViaApi(input);
+  } catch {
+    return criarUsuarioViaSignUp(input);
+  }
+}
+
+async function criarUsuarioViaApi(input: CriarUsuarioInput): Promise<Usuario> {
+  if (!supabase) throw new Error('Supabase não configurado.');
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+
+  const res = await fetch('/api/create-user', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  let body: { error?: string; usuario?: PerfilRow } = {};
+  try {
+    body = (await res.json()) as typeof body;
+  } catch {
+    body = {};
+  }
+
+  if (!res.ok) {
+    throw new Error(body.error || `Erro ao criar usuário (${res.status}).`);
+  }
+  if (!body.usuario) {
+    throw new Error('Resposta inválida ao criar usuário.');
+  }
+
+  return mapPerfil(body.usuario);
+}
+
+async function criarUsuarioViaSignUp(input: CriarUsuarioInput): Promise<Usuario> {
   if (!supabase) throw new Error('Supabase não configurado.');
 
   const email = input.email.trim().toLowerCase();
@@ -154,8 +230,20 @@ export async function criarUsuarioAuth(input: CriarUsuarioInput): Promise<Usuari
     },
   });
 
-  if (error) throw new Error(error.message);
-  if (!data.user) throw new Error('Não foi possível criar o usuário no Auth.');
+  if (error) {
+    if (/already registered|already exists|duplicate/i.test(error.message)) {
+      throw new Error('Este e-mail já está cadastrado.');
+    }
+    throw new Error(error.message);
+  }
+
+  if (!data.user) {
+    throw new Error(
+      'Não foi possível criar no Auth. Verifique em Supabase → Authentication se ' +
+        '"Allow new users to sign up" está ativo e "Confirm email" desativado, ' +
+        'ou configure SUPABASE_SERVICE_ROLE_KEY na Vercel.'
+    );
+  }
 
   const row = {
     id: data.user.id,

@@ -69,6 +69,17 @@
   margin-bottom: 1rem;
 }
 
+.config-panel .link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--dalia-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .config-panel.usuarios-wide,
 .config-page .config-panel:has(.usuario-form) {
   max-width: 720px;

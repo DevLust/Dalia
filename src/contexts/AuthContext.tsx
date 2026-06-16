@@ -3,7 +3,6 @@ import type { Usuario } from '../types';
 import {
   loginUsuario,
   logoutUsuario,
-  restoreUsuarioFromSession,
   subscribeAuth,
 } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -43,19 +42,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     let active = true;
+    let ready = false;
 
-    void (async () => {
-      const restored = await restoreUsuarioFromSession();
-      if (active) setUser(restored);
-      if (active) setAuthReady(true);
-    })();
+    const finish = () => {
+      if (active && !ready) {
+        ready = true;
+        setAuthReady(true);
+      }
+    };
 
-    const unsubscribe = subscribeAuth((perfil) => {
-      if (active) setUser(perfil);
-    });
+    // Nunca bloquear a tela de login se o Auth travar
+    const safetyTimer = window.setTimeout(finish, 8000);
+
+    const unsubscribe = subscribeAuth(
+      (perfil) => {
+        if (active) setUser(perfil);
+      },
+      () => {
+        window.clearTimeout(safetyTimer);
+        finish();
+      }
+    );
 
     return () => {
       active = false;
+      window.clearTimeout(safetyTimer);
       unsubscribe();
     };
   }, []);

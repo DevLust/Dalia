@@ -130,13 +130,18 @@ export default function Configuracoes() {
         {aba === 'seguranca' && (
           <section aria-label="Segurança">
             <p>
-              O login em produção usa <strong>Supabase Auth</strong> (senhas criptografadas).
-              O administrador pode criar perfis de atendente e gerente na aba Usuários.
+              Login seguro via <strong>Supabase Auth</strong>. As senhas não são armazenadas neste
+              aplicativo.
             </p>
-            <p className="hint">
-              Execute <code>docs/supabase-production.sql</code> no Supabase para políticas de
-              segurança e vinculação de perfis.
-            </p>
+            {isAdmin && (
+              <p>
+                Gerencie atendentes e gerentes na aba{' '}
+                <button type="button" className="link-btn" onClick={() => setAba('usuarios')}>
+                  Usuários
+                </button>
+                .
+              </p>
+            )}
           </section>
         )}
 
